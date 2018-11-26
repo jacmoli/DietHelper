@@ -1,0 +1,144 @@
+<html>
+<head>
+<title>Diet Helper</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script>
+
+var ingredients = {
+	empty: ["", 0],
+	beverone: ["Beverone", 3.75],
+	latte: ["Latte", 48],
+};
+
+
+function setIngredient() {
+
+
+}
+
+
+
+
+
+</script>
+
+<style>
+
+body {
+	background-color: #666666;
+	margin: 0px;
+	padding: 0px;
+	font-family: arial;
+}
+
+#container {
+	box-sizing: border-box;
+	width:100%;
+	max-width:390px;
+	margin: 5px;
+	padding: 5px;
+	border: 1px solid black;
+}
+
+h4 {
+	display:flex;
+}
+
+.meal_name {
+	display: inline-block;
+	margin-left: 5%;
+	margin-right: 5%;
+	width: 60%;
+}
+
+.meal_kcal {
+	display: inline-block;
+	margin-left: 5%;
+	margin-right: 2%;
+	width: 23%;
+}
+
+.ingredient {
+	margin-top: 1em;
+	margin-bottom: 1em;
+	display:flex;
+}
+
+select {
+	width:50%;
+	display: inline-block;
+	margin-right: 2%;
+}
+
+.item_mass, .unit_kcal, .item_kcal {
+	display: inline-block;
+	width: 12%;
+	margin-left: 2%;
+	margin-right:2%;
+}
+
+
+
+</style>
+
+
+</head>
+
+
+<body>
+
+
+<div id="container">
+
+	<h2>Diet Helper</h2>
+
+	<h4>
+		<div class="meal_name">Colazione</div>
+		<div class="meal_kcal">400</div>
+	</h4>
+
+	<div id="breakfast">
+		
+		<div class="ingredient" id="breakf_1">
+			<select onchange="setIngredient()">
+				<option value="empty"></option>
+				<option value="beverone">Beverone</option>
+				<option value="latte">Latte</option>
+			</select>
+			<span class="item_mass">37.5</span>
+			<span class="unit_kcal">3.75</span>
+			<span class="item_kcal">140</span>
+		</div>
+
+		<div class="ingredient" id="breakf_2">
+			<select>
+				<option value="empty"></option>
+				<option value="beverone">Beverone</option>
+				<option value="latte">Latte</option>
+			</select>
+			<span class="item_mass">37.5</span>
+			<span class="unit_kcal">3.75</span>
+			<span class="item_kcal">140</span>
+		</div>
+
+
+
+		
+	
+	
+	</div>
+
+
+
+
+
+
+
+
+
+
+</div>
+
+</body>
+</html>
