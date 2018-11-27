@@ -5,12 +5,17 @@
 
 <script>
 
+// --------------------
+const globalDebug = 0;
+// --------------------
+
 const ingredients = { 
 		// ------- FORMAT ---- optionValue : displayName, kCal/100g 
 		// ------- ORDER ----- EMPTY MUST ALWAYS BE FIRST, others in ALPHABETICAL order
-	
-	empty:        ["",                 0   ], 
-	beverone:     ["Beverone",         3.75],
+
+//  Prop_name      Display_Name     kcal		
+	empty:        ["",                  0   ], 
+	cacao:        ["Cacao",             3.75],
 	latte:        ["Latte",            48   ],
 	
 };
@@ -28,24 +33,19 @@ var kCalDay = {
 }
 	
 
+function getValue(name) { return document.getElementById(name).textContent; }
+
+function setValue(name, value) { return document.getElementById(name).textContent = value; }	
+	
 
 function setIngredient() {
 
 	let chosenIngr = event.srcElement.value;
-	//console.log(chosenIngr);
-	
 	let activeRow  = event.srcElement.parentNode;
-	//console.log(activeRow);
-		
 	let baseKcal = activeRow.querySelector(".unit_kcal");
-	//console.log(baseKcal);
-	
-	//console.log(ingredients);
-	//console.log(ingredients[chosenIngr]);
-	//console.log(ingredients[chosenIngr][1]);	
-	
 	
 	baseKcal.textContent = Math.round(ingredients[chosenIngr][1]);
+	calculateIngredient();
 }
 
 // reads ingredients list, appends all ingredients as options to dropdown menu
@@ -78,17 +78,19 @@ function addRow(meal) {
 		select.setAttribute("class", "vertCenter");
 		select.setAttribute("onchange", "setIngredient()");
 	
-	let iMass = document.createElement("span");
+	let iMass = document.createElement("button");
 		iMass.setAttribute("class", "item_mass vertCenter");
-		iMass.textContent = 50;
+		iMass.textContent = 20;
+		iMass.setAttribute("onchange", "calculateIngredient()");  //verificare
+		//select.setAttribute("onclick", FUNZIONE PROMPT X INPUT");
 	
 	let uKcal = document.createElement("span");
 		uKcal.setAttribute("class", "unit_kcal vertCenter");
-		uKcal.textContent = 48;
+		uKcal.textContent = 0;
 	
 	let iKcal = document.createElement("span");
 		iKcal.setAttribute("class", "item_kcal vertCenter");	
-		iKcal.textContent = 24;	
+		iKcal.textContent = 0;	
 	
 	parent.appendChild(line);
 		line.appendChild(remove);
@@ -105,13 +107,31 @@ function deleteRow() {
 }
 
 
+function toggleBlock(id) {
+	let block = document.getElementById(id);
+	block.classList.toggle("hidden") ;
+	event.srcElement.querySelector(".arrow").classList.toggle("up");
+}
 
+function calculateIngredient() {
+	let caller = event.srcElement;
+
+
+	let itemMass_id = caller.parentNode.querySelector(".item_mass");
+	let unitKcal_id = caller.parentNode.querySelector(".unit_kcal");
+	let itemKcal_id = caller.parentNode.querySelector(".item_kcal");
+	
+	mass = itemMass_id.textContent;
+	kcal = unitKcal_id.textContent;
+	
+	itemKcal_id.textContent = mass * kcal / 100; 
+}
 
 window.onload = function(){
 
-	addRow("breakfast");
-	addRow("breakfast");
-	addRow("breakfast");
+	addRow("breakfast_list");
+	addRow("breakfast_list");
+	addRow("breakfast_list");
 };
 
 </script>
@@ -134,22 +154,44 @@ body {
 	border: 1px solid black;
 }
 
-h4 {
+.meal_group {
+}
+
+.meal_header {
+	font-weight: bold;
 	display:flex;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
 }
 
 .meal_name {
 	display: inline-block;
-	margin-left: 5%;
-	margin-right: 5%;
-	width: 60%;
+	margin-left: 1em;
+	margin-right: 1em;
+	flex-grow: 1;
+}
+
+.arrow {
+	width:  1.2em;
+	height: 0.7em;
+}
+
+.up {
+    -ms-transform: rotate(180deg); /* IE 9 */
+    -webkit-transform: rotate(180deg); /* Safari */
+    transform: rotate(180deg);
 }
 
 .meal_kcal {
 	display: inline-block;
-	margin-left: 5%;
-	margin-right: 2%;
-	width: 23%;
+	margin-left:  0.25em;
+	margin-right: 0.25em;
+	width: 12%;
+	text-align:right;
+	padding-left:  2px;
+	padding-right: 2px;
+	border: 1px solid black;
+	border-radius: 1em;
 }
 
 .ingredient {
@@ -172,11 +214,22 @@ select {
 }
 
 .item_mass, .unit_kcal, .item_kcal {
+	box-sizing:border-box;
 	display: inline-block;
-	width: 12%;
-	margin-left: 0.5em;
-	margin-right:0.5em;
+	width: 3em;
+	margin-left: 0.25em;
+	margin-right:0.25em;
 	text-align:right;
+	padding-left:  2px;
+	padding-right: 2px;
+	border: 1px solid black;
+	border-radius: 1em;
+	font-size: 16px;
+}
+
+.item_mass {
+	background-color: #ffffaa;
+
 }
 
 button {
@@ -206,10 +259,13 @@ button {
 	margin-top: auto;
 	margin-bottom: auto;
 	background-color: #ffaaaa;
-	color: white;
-	
+	color: red;
+	font-size: 10px;	
 }
 
+.hidden {
+	display: none;
+}
 
 .vertCenter {
 	margin-top: auto;
@@ -219,6 +275,17 @@ button {
 .deleteRowIcon {
 	height: 1.5em;
 	width: 1.5em;
+}
+
+.arrow {
+	width:  1.2em;
+	height: 0.7em;
+}
+
+.up {
+    -ms-transform: rotate(180deg); /* IE 9 */
+    -webkit-transform: rotate(180deg); /* Safari */
+    transform: rotate(180deg);
 }
 
 </style>
@@ -232,26 +299,30 @@ button {
 
 <div id="container">
 
-	<h2>Diet Helper</h2>
+	<h4>Diet Helper</h4>
 
-	<h4>
-		<div class="meal_name">Colazione</div>
-		<div class="meal_kcal">400</div>
-	</h4>
+	
+	<div class="meal_group" id="breakfast_group">
+		<div class="meal_header">
+			<div class="meal_name" onclick="toggleBlock('breakfast_block')">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="arrow up" x="0px" y="0px" viewBox="0 0 960 560" enable-background="new 0 0 960 560" xml:space="preserve">
+					<path d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937   c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937   c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/>
+				</svg>
+				Colazione
+			</div>
+			<div class="meal_kcal">400</div>
+		</div>
 
-	<div id="breakfast">
+		<div class="meal_block" id="breakfast_block">
+			<div id="breakfast_list"></div>
+			<button class="plus" onclick="addRow('breakfast_list')">+</button>
+		</div>
 	</div>
-
-	<button class="plus" onclick="addRow('breakfast')">+</div>
-
-
+	
+	
 
 
-
-
-
-
-</div>
+</div> <!-- container -->
 
 </body>
 </html>
