@@ -5,21 +5,114 @@
 
 <script>
 
-var ingredients = {
-	empty: ["", 0],
-	beverone: ["Beverone", 3.75],
-	latte: ["Latte", 48],
+const ingredients = { 
+		// ------- FORMAT ---- optionValue : displayName, kCal/100g 
+		// ------- ORDER ----- EMPTY MUST ALWAYS BE FIRST, others in ALPHABETICAL order
+	
+	empty:        ["",                 0   ], 
+	beverone:     ["Beverone",         3.75],
+	latte:        ["Latte",            48   ],
+	
 };
+
+
+const menu = {};
+var i = 0;
+
+var kCalDay = {
+	breakfast: 0,
+	snackM:    0,
+	lunch:     0,
+	snack2:    0,
+	dinner:    0
+}
+	
 
 
 function setIngredient() {
 
+	let chosenIngr = event.srcElement.value;
+	//console.log(chosenIngr);
+	
+	let activeRow  = event.srcElement.parentNode;
+	//console.log(activeRow);
+		
+	let baseKcal = activeRow.querySelector(".unit_kcal");
+	//console.log(baseKcal);
+	
+	//console.log(ingredients);
+	//console.log(ingredients[chosenIngr]);
+	//console.log(ingredients[chosenIngr][1]);	
+	
+	
+	baseKcal.textContent = Math.round(ingredients[chosenIngr][1]);
+}
 
+// reads ingredients list, appends all ingredients as options to dropdown menu
+function buildList() {
+	let select = document.createElement("select");
+ 
+	for (let item in ingredients) {
+		let option = document.createElement("option"); 
+		option.innerHTML = ingredients[item][0];
+		option.setAttribute("value", item);
+		select.appendChild(option);
+	}
+
+	return select
+}
+
+function addRow(meal) {
+
+	let parent = document.getElementById(meal);
+	
+	let line = document.createElement("div");
+		line.setAttribute("class", "ingredient");
+	
+	let remove = document.createElement("button");
+		remove.setAttribute("class", "minus");
+		remove.setAttribute("onclick", "deleteRow()");
+		remove.textContent = "X";
+	
+	let select = buildList();
+		select.setAttribute("class", "vertCenter");
+		select.setAttribute("onchange", "setIngredient()");
+	
+	let iMass = document.createElement("span");
+		iMass.setAttribute("class", "item_mass vertCenter");
+		iMass.textContent = 50;
+	
+	let uKcal = document.createElement("span");
+		uKcal.setAttribute("class", "unit_kcal vertCenter");
+		uKcal.textContent = 48;
+	
+	let iKcal = document.createElement("span");
+		iKcal.setAttribute("class", "item_kcal vertCenter");	
+		iKcal.textContent = 24;	
+	
+	parent.appendChild(line);
+		line.appendChild(remove);
+		line.appendChild(select);
+		line.appendChild(iMass);
+		line.appendChild(uKcal);
+		line.appendChild(iKcal);
+}
+
+function deleteRow() {
+	let btnMinus = event.srcElement;
+	let riga = btnMinus.parentNode;
+	riga.parentNode.removeChild(riga);
 }
 
 
 
 
+window.onload = function(){
+
+	addRow("breakfast");
+	addRow("breakfast");
+	addRow("breakfast");
+};
 
 </script>
 
@@ -60,25 +153,73 @@ h4 {
 }
 
 .ingredient {
-	margin-top: 1em;
-	margin-bottom: 1em;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	height:2em;
 	display:flex;
+	
 }
 
 select {
-	width:50%;
+	flex-grow: 1;
+	box-sizing: border-box;
 	display: inline-block;
-	margin-right: 2%;
+	height: 1.6em;
+	margin-top: auto;
+	margin-bottom: auto;
+	margin-left: 0.5em;
+	margin-right: 0.5em;
 }
 
 .item_mass, .unit_kcal, .item_kcal {
 	display: inline-block;
 	width: 12%;
-	margin-left: 2%;
-	margin-right:2%;
+	margin-left: 0.5em;
+	margin-right:0.5em;
+	text-align:right;
+}
+
+button {
+	box-sizing: border-box; 
+	border-width:2px;
+	border-style: solid;
+	border-radius: 50%;
+	padding:0px;
+	text-align:center;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+}
+	
+.plus {
+	border-color: green;
+	height: 1.5em;
+	width:  1.5em;
+	margin-left: 4em;
+	background-color: #aaffaa;
+}
+
+.minus {
+	border-color: red;
+	height: 1.5em;
+	width:  1.5em;
+	margin-top: auto;
+	margin-bottom: auto;
+	background-color: #ffaaaa;
+	color: white;
+	
 }
 
 
+.vertCenter {
+	margin-top: auto;
+	margin-bottom:auto;
+}
+
+.deleteRowIcon {
+	height: 1.5em;
+	width: 1.5em;
+}
 
 </style>
 
@@ -99,37 +240,9 @@ select {
 	</h4>
 
 	<div id="breakfast">
-		
-		<div class="ingredient" id="breakf_1">
-			<select onchange="setIngredient()">
-				<option value="empty"></option>
-				<option value="beverone">Beverone</option>
-				<option value="latte">Latte</option>
-			</select>
-			<span class="item_mass">37.5</span>
-			<span class="unit_kcal">3.75</span>
-			<span class="item_kcal">140</span>
-		</div>
-
-		<div class="ingredient" id="breakf_2">
-			<select>
-				<option value="empty"></option>
-				<option value="beverone">Beverone</option>
-				<option value="latte">Latte</option>
-			</select>
-			<span class="item_mass">37.5</span>
-			<span class="unit_kcal">3.75</span>
-			<span class="item_kcal">140</span>
-		</div>
-
-
-
-		
-	
-	
 	</div>
 
-
+	<button class="plus" onclick="addRow('breakfast')">+</div>
 
 
 
