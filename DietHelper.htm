@@ -38,15 +38,7 @@ function getValue(name) { return document.getElementById(name).textContent; }
 function setValue(name, value) { return document.getElementById(name).textContent = value; }	
 	
 
-function setIngredient() {
 
-	let chosenIngr = event.srcElement.value;
-	let activeRow  = event.srcElement.parentNode;
-	let baseKcal = activeRow.querySelector(".unit_kcal");
-	
-	baseKcal.textContent = Math.round(ingredients[chosenIngr][1]);
-	calculateIngredient();
-}
 
 // reads ingredients list, appends all ingredients as options to dropdown menu
 function buildList() {
@@ -72,24 +64,24 @@ function addRow(meal) {
 	let remove = document.createElement("button");
 		remove.setAttribute("class", "minus");
 		remove.setAttribute("onclick", "deleteRow()");
-		remove.textContent = "X";
+		remove.textContent = "x";
 	
 	let select = buildList();
 		select.setAttribute("class", "vertCenter");
-		select.setAttribute("onchange", "setIngredient()");
+		select.setAttribute("onchange", "setIngredientProperties()");
 	
-	let iMass = document.createElement("button");
-		iMass.setAttribute("class", "item_mass vertCenter");
+	let iMass = document.createElement("span");
+		iMass.setAttribute("class", "item_mass vertCenter unselectable");
 		iMass.textContent = 20;
-		iMass.setAttribute("onchange", "calculateIngredient()");  //verificare
-		//select.setAttribute("onclick", FUNZIONE PROMPT X INPUT");
+		iMass.setAttribute("onchange", "calculateIngredient()");  
+		iMass.setAttribute("onclick", "setMass()");
 	
 	let uKcal = document.createElement("span");
-		uKcal.setAttribute("class", "unit_kcal vertCenter");
+		uKcal.setAttribute("class", "unit_kcal vertCenter unselectable");
 		uKcal.textContent = 0;
 	
 	let iKcal = document.createElement("span");
-		iKcal.setAttribute("class", "item_kcal vertCenter");	
+		iKcal.setAttribute("class", "item_kcal vertCenter unselectable");	
 		iKcal.textContent = 0;	
 	
 	parent.appendChild(line);
@@ -101,22 +93,77 @@ function addRow(meal) {
 }
 
 function deleteRow() {
-	let btnMinus = event.srcElement;
-	let riga = btnMinus.parentNode;
+	
+	let check = window.confirm("Cancellare riga?") 
+
+	if (!check) {return};
+	
+	let caller = event.currentTarget;
+	let meal   = caller.parentNode.parentNode.parentNode.parentNode;
+	let riga   = caller.parentNode;
 	riga.parentNode.removeChild(riga);
+	
+	calculateMeal(meal);
 }
 
 
-function toggleBlock(id) {
-	let block = document.getElementById(id);
+function toggleBlock() {
+
+	let caller = event.currentTarget;
+	console.log(caller);
+	
+	let block  = caller.parentNode.querySelector(".meal_block");
+	console.log(block);
+	
 	block.classList.toggle("hidden") ;
-	event.srcElement.querySelector(".arrow").classList.toggle("up");
+	event.currentTarget.querySelector(".arrow").classList.toggle("up");
+
 }
 
-function calculateIngredient() {
-	let caller = event.srcElement;
+function setIngredientProperties() {
 
+	let caller     = event.currentTarget
 
+	let chosenIngr = caller.value;
+	let activeRow  = caller.parentNode;
+	let baseKcal   = activeRow.querySelector(".unit_kcal");
+	
+	baseKcal.textContent = Math.round(ingredients[chosenIngr][1]);
+	
+	calculateIngredient(caller);
+}
+
+function setMass() {
+	
+	let caller = event.currentTarget;
+	let meal   = caller.parentNode.parentNode.parentNode.parentNode;
+	
+	let value;
+	let userInput = parseInt(prompt("Quantita':", ""), 10);
+	
+	userInput 
+		? value = userInput
+		: value = 0;
+	
+	caller.textContent = value;
+	
+	
+	calculateIngredient(meal);
+	
+}
+
+function calculateIngredient(eventCaller) {
+	
+	let caller;
+	let meal; 
+	
+	eventCaller 
+		? caller = eventCaller
+		: caller = event.currentTarget;
+
+	console.log(caller);
+	meal = caller.parentNode.parentNode.parentNode.parentNode;
+		
 	let itemMass_id = caller.parentNode.querySelector(".item_mass");
 	let unitKcal_id = caller.parentNode.querySelector(".unit_kcal");
 	let itemKcal_id = caller.parentNode.querySelector(".item_kcal");
@@ -124,8 +171,40 @@ function calculateIngredient() {
 	mass = itemMass_id.textContent;
 	kcal = unitKcal_id.textContent;
 	
-	itemKcal_id.textContent = mass * kcal / 100; 
+	itemKcal_id.textContent = Math.round(mass * kcal / 100); 
+	
+	calculateMeal(meal);
 }
+
+
+function calculateMeal(meal){
+
+	let mealId;
+	let mealKcalList;
+	let mealKcalTot = 0;
+	
+	meal 
+		? mealId = meal
+		: mealId = event.parentNode.parentNode.parentNode.parentNode;
+		
+	console.log(mealId);
+	
+	mealKcalList = mealId.querySelectorAll(".item_kcal")
+	//console.log(mealKcalList);
+	
+	mealKcalList.forEach(function(el){
+		mealKcalTot += parseInt(el.textContent, 10);
+	});
+	
+	mealId.querySelector(".meal_kcal").textContent = mealKcalTot;
+	
+	calculateDay();
+}
+
+function calculateDay() {
+
+}
+
 
 window.onload = function(){
 
@@ -157,18 +236,32 @@ body {
 .meal_group {
 }
 
-.meal_header {
+.meal_header, #app_header {
 	font-weight: bold;
+	height: 2em;
 	display:flex;
+	align-items: center;
+	border: 2px solid black;
+	border-radius: 1em;
 	margin-top: 0.5em;
 	margin-bottom: 0.5em;
+	background-color: #fffff0;
 }
 
-.meal_name {
+#app_header {
+	font-variant: small-caps;
+}
+
+.meal_name, #app_name {
 	display: inline-block;
 	margin-left: 1em;
 	margin-right: 1em;
 	flex-grow: 1;
+}
+
+#app_name {
+	font-size: larger;
+	color: green;
 }
 
 .arrow {
@@ -182,24 +275,11 @@ body {
     transform: rotate(180deg);
 }
 
-.meal_kcal {
-	display: inline-block;
-	margin-left:  0.25em;
-	margin-right: 0.25em;
-	width: 12%;
-	text-align:right;
-	padding-left:  2px;
-	padding-right: 2px;
-	border: 1px solid black;
-	border-radius: 1em;
-}
-
 .ingredient {
 	margin-top: 0.5em;
 	margin-bottom: 0.5em;
 	height:2em;
 	display:flex;
-	
 }
 
 select {
@@ -213,30 +293,45 @@ select {
 	margin-right: 0.5em;
 }
 
-.item_mass, .unit_kcal, .item_kcal {
+.item_mass, .unit_kcal, .item_kcal, .meal_kcal, #day_kcal {
 	box-sizing:border-box;
-	display: inline-block;
+	display: flex;
 	width: 3em;
+	height: 1.5em;
 	margin-left: 0.25em;
 	margin-right:0.25em;
-	text-align:right;
 	padding-left:  2px;
 	padding-right: 2px;
-	border: 1px solid black;
+	border-width: 1px;
+	border-style: solid; 
 	border-radius: 1em;
 	font-size: 16px;
+	justify-content: flex-end;
+	align-items: center;
 }
 
-.item_mass {
+.item_mass, select {
 	background-color: #ffffaa;
-
 }
+
+.unit_kcal, .item_kcal, .meal_kcal, #day_kcal {
+	background-color: #cccccc;
+}
+
+.item_mass, .unit_kcal, .item_kcal, .meal_kcal {
+	border-color: black;
+}
+
+#day_kcal {
+	border-color: green;
+}
+
 
 button {
 	box-sizing: border-box; 
 	border-width:2px;
 	border-style: solid;
-	border-radius: 50%;
+
 	padding:0px;
 	text-align:center;
 	-webkit-appearance: none;
@@ -246,18 +341,21 @@ button {
 	
 .plus {
 	border-color: green;
+	border-radius: 0.75em;
 	height: 1.5em;
-	width:  1.5em;
+	width:  4em;
 	margin-left: 4em;
 	background-color: #aaffaa;
 }
 
 .minus {
 	border-color: red;
+	border-radius: 50%;
 	height: 1.5em;
 	width:  1.5em;
 	margin-top: auto;
 	margin-bottom: auto;
+	margin-right: 0.5em;
 	background-color: #ffaaaa;
 	color: red;
 	font-size: 10px;	
@@ -288,6 +386,13 @@ button {
     transform: rotate(180deg);
 }
 
+.unselectable {
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+
 </style>
 
 
@@ -299,18 +404,21 @@ button {
 
 <div id="container">
 
-	<h4>Diet Helper</h4>
+	<div id="app_header">
+		<div class="unselectable" id="app_name">Diet Helper</div>
+		<div class="unselectable" id="day_kcal"></div>
+	</div>
 
-	
+<!-- BREAKFAST -->
 	<div class="meal_group" id="breakfast_group">
-		<div class="meal_header">
-			<div class="meal_name" onclick="toggleBlock('breakfast_block')">
+		<div class="meal_header" onclick="toggleBlock()">
+			<div class="meal_name unselectable">
 				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="arrow up" x="0px" y="0px" viewBox="0 0 960 560" enable-background="new 0 0 960 560" xml:space="preserve">
 					<path d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937   c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937   c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/>
 				</svg>
 				Colazione
 			</div>
-			<div class="meal_kcal">400</div>
+			<div class="meal_kcal unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="breakfast_block">
@@ -318,7 +426,82 @@ button {
 			<button class="plus" onclick="addRow('breakfast_list')">+</button>
 		</div>
 	</div>
+
 	
+<!-- SNACK (MORNING)-->
+	<div class="meal_group" id="snack1_group">
+		<div class="meal_header" onclick="toggleBlock()">
+			<div class="meal_name unselectable">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="arrow up" x="0px" y="0px" viewBox="0 0 960 560" enable-background="new 0 0 960 560" xml:space="preserve">
+					<path d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937   c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937   c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/>
+				</svg>
+				Spuntino 1
+			</div>
+			<div class="meal_kcal unselectable">0</div>
+		</div>
+
+		<div class="meal_block" id="snack1_block">
+			<div id="snack1_list"></div>
+			<button class="plus" onclick="addRow('snack1_list')">+</button>
+		</div>
+	</div>
+	
+
+<!-- LUNCH -->	
+	<div class="meal_group" id="lunch_group">
+		<div class="meal_header" onclick="toggleBlock()">
+			<div class="meal_name unselectable">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="arrow up" x="0px" y="0px" viewBox="0 0 960 560" enable-background="new 0 0 960 560" xml:space="preserve">
+					<path d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937   c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937   c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/>
+				</svg>
+				Pranzo
+			</div>
+			<div class="meal_kcal unselectable">0</div>
+		</div>
+
+		<div class="meal_block" id="lunch_block">
+			<div id="lunch_list"></div>
+			<button class="plus" onclick="addRow('lunch_list')">+</button>
+		</div>
+	</div>
+	
+
+<!-- SNACK (AFTERNOON)-->	
+	<div class="meal_group" id="snack2_group">
+		<div class="meal_header" onclick="toggleBlock()">
+			<div class="meal_name unselectable">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="arrow up" x="0px" y="0px" viewBox="0 0 960 560" enable-background="new 0 0 960 560" xml:space="preserve">
+					<path d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937   c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937   c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/>
+				</svg>
+				Spuntino 2
+			</div>
+			<div class="meal_kcal unselectable">0</div>
+		</div>
+
+		<div class="meal_block" id="snack2_block">
+			<div id="snack2_list"></div>
+			<button class="plus" onclick="addRow('snack2_list')">+</button>
+		</div>
+	</div>
+	
+
+<!-- DINNER-->	
+	<div class="meal_group" id="dinner_group">
+		<div class="meal_header" onclick="toggleBlock()">
+			<div class="meal_name unselectable">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="arrow up" x="0px" y="0px" viewBox="0 0 960 560" enable-background="new 0 0 960 560" xml:space="preserve">
+					<path d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937   c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937   c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/>
+				</svg>
+				Cena
+			</div>
+			<div class="meal_kcal unselectable">0</div>
+		</div>
+
+		<div class="meal_block" id="dinner_block">
+			<div id="dinner_list"></div>
+			<button class="plus" onclick="addRow('dinner_list')">+</button>
+		</div>
+	</div>
 	
 
 
