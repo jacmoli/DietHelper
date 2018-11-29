@@ -9,16 +9,21 @@
 const globalDebug = 0;
 // --------------------
 
-const ingredients = { 
-		// ------- FORMAT ---- optionValue : displayName, kCal/100g 
-		// ------- ORDER ----- EMPTY MUST ALWAYS BE FIRST, others in ALPHABETICAL order
+const ingredients = [ 
+		// ------- ORDER ----- EMPTY MUST ALWAYS BE FIRST, others in alphabetical order
 
-//  Prop_name      Display_Name     kcal		
-	empty:        ["",                  0   ], 
-	cacao:        ["Cacao",             3.75],
-	latte:        ["Latte",            48   ],
+//  List_Name, List_Tooltip,
+//    kcal, fats, carb, prot, fibr
+	["", "", 
+		0], 
+	["Cacao", "1 dose = 38g",
+		3.75],
+	["Gall. riso Coop", "3 gallette = 25g",
+		377, 1.7, 81, 7.5, 3.9],
+	["Latte", "",
+		48],
 	
-};
+];
 
 
 const menu = {};
@@ -35,19 +40,19 @@ var kCalDay = {
 
 function getValue(name) { return document.getElementById(name).textContent; }
 
-function setValue(name, value) { return document.getElementById(name).textContent = value; }	
+function setValue(name, value) { return document.getElementById(name).innerHTML = value; }	
 	
 
 
 
 // reads ingredients list, appends all ingredients as options to dropdown menu
-function buildList() {
+function buildList(source) {
 	let select = document.createElement("select");
  
-	for (let item in ingredients) {
+	for (let i=0; i<source.length; i++) {
 		let option = document.createElement("option"); 
-		option.innerHTML = ingredients[item][0];
-		option.setAttribute("value", item);
+		option.innerHTML = source[i][0];
+		option.setAttribute("value", i);
 		select.appendChild(option);
 	}
 
@@ -61,42 +66,82 @@ function addRow(meal) {
 	let line = document.createElement("div");
 		line.setAttribute("class", "ingredient");
 	
-	let remove = document.createElement("button");
-		remove.setAttribute("class", "minus");
-		remove.setAttribute("onclick", "deleteRow()");
-		remove.textContent = "x";
-	
-	let select = buildList();
+	let select = buildList(ingredients);
 		select.setAttribute("class", "vertCenter");
 		select.setAttribute("onchange", "setIngredientProperties()");
 	
-	let iMass = document.createElement("span");
+	let iMass = document.createElement("input");
 		iMass.setAttribute("class", "item_mass vertCenter unselectable");
-		iMass.textContent = 20;
-		iMass.setAttribute("onchange", "calculateIngredient()");  
-		iMass.setAttribute("onclick", "setMass()");
+		iMass.setAttribute("type", "tel");	
+		iMass.setAttribute("onkeyup", "userInput()");		
+		
+	let times = document.createElement("span");
+		times.setAttribute("class", "smallFont vertCenter unselectable");	
+		times.textContent = "x";
 	
-	let uKcal = document.createElement("span");
-		uKcal.setAttribute("class", "unit_kcal vertCenter unselectable");
+	let uKcal = document.createElement("div");
+		uKcal.setAttribute("class", "unit_kcal vertCenter unselectable smallfont");
 		uKcal.textContent = 0;
+		
+	let equal = document.createElement("span");
+		equal.setAttribute("class", "smallFont vertCenter unselectable");	
+		equal.textContent = "=";
 	
-	let iKcal = document.createElement("span");
+	let iKcal = document.createElement("div");
 		iKcal.setAttribute("class", "item_kcal vertCenter unselectable");	
 		iKcal.textContent = 0;	
+		
+	let enable = document.createElement("button");
+		enable.setAttribute("class", "minus smallFont unselectable");
+		enable.setAttribute("onclick", "enableDelete()");
+		enable.textContent = "x";
+	
+	let remove = document.createElement("button");
+		remove.setAttribute("class"  , "delete smallFont unselectable hidden");
+		remove.setAttribute("onclick", "deleteRow()");
+		remove.setAttribute("onblur" , "clearDelete()");		
+		remove.textContent = "x";
 	
 	parent.appendChild(line);
-		line.appendChild(remove);
 		line.appendChild(select);
 		line.appendChild(iMass);
+		line.appendChild(times);
 		line.appendChild(uKcal);
+		line.appendChild(equal);
 		line.appendChild(iKcal);
+		line.appendChild(enable);		
+		line.appendChild(remove);
+		
+}
+
+function enableDelete(){
+
+	let caller = event.currentTarget;             // .minus button
+	let row    = caller.parentNode;               // .ingredient
+	let depend = row.querySelector(".delete")     // .delete button
+	
+	
+	caller.removeAttribute("onclick");
+	
+	setTimeout(function(){
+		caller.classList.toggle("hidden");
+		depend.classList.toggle("hidden");
+		depend.focus();
+	},100);
+}
+
+function clearDelete(){
+
+	let caller = event.currentTarget;             // .delete button
+	let row    = caller.parentNode;               // .ingredient
+	let depend = row.querySelector(".minus")      // .minus button
+	
+	caller.classList.toggle("hidden");
+	depend.classList.toggle("hidden");
+	depend.setAttribute("onclick", "enableDelete()");
 }
 
 function deleteRow() {
-	
-	let check = window.confirm("Cancellare riga?") 
-
-	if (!check) {return};
 	
 	let caller = event.currentTarget;
 	let meal   = caller.parentNode.parentNode.parentNode.parentNode;
@@ -106,14 +151,16 @@ function deleteRow() {
 	calculateMeal(meal);
 }
 
+ 
+
 
 function toggleBlock() {
 
 	let caller = event.currentTarget;
-	console.log(caller);
+	//console.log(caller);
 	
 	let block  = caller.parentNode.querySelector(".meal_block");
-	console.log(block);
+	//console.log(block);
 	
 	block.classList.toggle("hidden") ;
 	event.currentTarget.querySelector(".arrow").classList.toggle("up");
@@ -122,16 +169,40 @@ function toggleBlock() {
 
 function setIngredientProperties() {
 
-	let caller     = event.currentTarget
+	let caller     = event.currentTarget;
 
 	let chosenIngr = caller.value;
 	let activeRow  = caller.parentNode;
 	let baseKcal   = activeRow.querySelector(".unit_kcal");
 	
-	baseKcal.textContent = Math.round(ingredients[chosenIngr][1]);
+	baseKcal.textContent = ingredients[chosenIngr][2];
+	
+	ingredients[chosenIngr][1] 
+		? setValue("footer", "<b>" + ingredients[chosenIngr][0] + ":</b> " + ingredients[chosenIngr][1])
+		: setValue("footer", "");
 	
 	calculateIngredient(caller);
 }
+
+function userInput() {
+
+	let caller = event.currentTarget;
+	caller.focus();
+	
+	let temp = parseInt(caller.value);
+	
+	caller.value = isNaN(temp) ? 0 : temp;
+	
+	calculateIngredient(caller);
+	
+	caller.addEventListener("keydown", function(event) {
+		if (event.key === "Enter") {
+			caller.blur();
+		}
+	});
+}
+
+
 
 function setMass() {
 	
@@ -148,7 +219,7 @@ function setMass() {
 	caller.textContent = value;
 	
 	
-	calculateIngredient(meal);
+	calculateIngredient(caller);
 	
 }
 
@@ -156,6 +227,8 @@ function calculateIngredient(eventCaller) {
 	
 	let caller;
 	let meal; 
+	
+	console.log(eventCaller);
 	
 	eventCaller 
 		? caller = eventCaller
@@ -168,7 +241,7 @@ function calculateIngredient(eventCaller) {
 	let unitKcal_id = caller.parentNode.querySelector(".unit_kcal");
 	let itemKcal_id = caller.parentNode.querySelector(".item_kcal");
 	
-	mass = itemMass_id.textContent;
+	mass = itemMass_id.value;
 	kcal = unitKcal_id.textContent;
 	
 	itemKcal_id.textContent = Math.round(mass * kcal / 100); 
@@ -187,7 +260,7 @@ function calculateMeal(meal){
 		? mealId = meal
 		: mealId = event.parentNode.parentNode.parentNode.parentNode;
 		
-	console.log(mealId);
+	//console.log(mealId);
 	
 	mealKcalList = mealId.querySelectorAll(".item_kcal")
 	//console.log(mealKcalList);
@@ -202,20 +275,37 @@ function calculateMeal(meal){
 }
 
 function calculateDay() {
+	let allMealsList  = document.querySelectorAll(".meal_kcal");
+	
+	let allMealsValue = 0;
 
+	allMealsList.forEach(function(el){
+		allMealsValue += parseInt(el.textContent, 10);
+	});	
+	
+	setValue("day_kcal", allMealsValue);	
 }
 
 
 window.onload = function(){
 
 	addRow("breakfast_list");
-	addRow("breakfast_list");
-	addRow("breakfast_list");
+	addRow("snack1_list");
+	addRow("lunch_list");
+	addRow("snack2_list");
+	addRow("dinner_list");
 };
 
 </script>
 
 <style>
+html {
+	font-size: 16px;
+}
+
+.smallFont {
+	font-size: 10px;
+}
 
 body {
 	background-color: #666666;
@@ -227,10 +317,27 @@ body {
 #container {
 	box-sizing: border-box;
 	width:100%;
-	max-width:390px;
-	margin: 5px;
+	max-width:400px;
+	/*margin: 5px;*/
 	padding: 5px;
-	border: 1px solid black;
+	border-bottom: 3px solid black;
+	position: fixed;
+	top: 0px;
+	bottom: 3rem;
+	overflow: overlay;
+}
+
+#footer {
+	box-sizing: border-box;
+	width:100%;
+	max-width:400px;
+	padding: 5px;
+	/*border: 1px solid black;*/
+	position: fixed;
+	bottom: 0px;
+	height: 3rem;
+	overflow: hidden;
+	background-color: #ccccff;
 }
 
 .meal_group {
@@ -238,14 +345,18 @@ body {
 
 .meal_header, #app_header {
 	font-weight: bold;
-	height: 2em;
+	height: 2rem;
 	display:flex;
 	align-items: center;
 	border: 2px solid black;
-	border-radius: 1em;
-	margin-top: 0.5em;
-	margin-bottom: 0.5em;
+	border-radius: 2rem;
+	margin-top: 0.5rem;
+	margin-bottom: 0.5rem;
 	background-color: #fffff0;
+}
+
+.meal_header {
+	margin-right: 2rem;
 }
 
 #app_header {
@@ -254,15 +365,19 @@ body {
 
 .meal_name, #app_name {
 	display: inline-block;
-	margin-left: 1em;
-	margin-right: 1em;
+	margin-left: 1rem;
+	margin-right: 1rem;
+	width: 4rem;
 	flex-grow: 1;
 }
 
 #app_name {
+	color: blue;
 	font-size: larger;
-	color: green;
+	font-style: italic;
 }
+
+
 
 .arrow {
 	width:  1.2em;
@@ -276,39 +391,50 @@ body {
 }
 
 .ingredient {
-	margin-top: 0.5em;
-	margin-bottom: 0.5em;
+	margin-top: 0.5rem;
+	margin-bottom: 0.5rem;
+	margin-left: 0.5rem;
 	height:2em;
 	display:flex;
+	align-items: center;
 }
 
 select {
 	flex-grow: 1;
 	box-sizing: border-box;
 	display: inline-block;
-	height: 1.6em;
-	margin-top: auto;
-	margin-bottom: auto;
+	height: 2em;
+	width: 4em;
 	margin-left: 0.5em;
 	margin-right: 0.5em;
+	font-size: 10px;
 }
 
 .item_mass, .unit_kcal, .item_kcal, .meal_kcal, #day_kcal {
 	box-sizing:border-box;
 	display: flex;
-	width: 3em;
-	height: 1.5em;
-	margin-left: 0.25em;
-	margin-right:0.25em;
+	width: 3rem;
+	height: 1.5rem;
 	padding-left:  2px;
 	padding-right: 2px;
 	border-width: 1px;
 	border-style: solid; 
-	border-radius: 1em;
-	font-size: 16px;
+	border-radius: 1rem;
 	justify-content: flex-end;
 	align-items: center;
+	overflow: hidden;
 }
+
+.item_mass, .unit_kcal, .item_kcal, .meal_kcal {
+	margin-left: 0.25rem;
+	margin-right:0.25rem;
+}
+
+#day_kcal {
+	margin-left: 0.25rem;
+	margin-right:2.25rem;
+}
+
 
 .item_mass, select {
 	background-color: #ffffaa;
@@ -323,7 +449,7 @@ select {
 }
 
 #day_kcal {
-	border-color: green;
+	border-color: blue;
 }
 
 
@@ -343,22 +469,33 @@ button {
 	border-color: green;
 	border-radius: 0.75em;
 	height: 1.5em;
-	width:  4em;
-	margin-left: 4em;
+	width:  4rem;
+	margin-left: 4rem;
 	background-color: #aaffaa;
 }
 
-.minus {
+.minus, .delete {
 	border-color: red;
 	border-radius: 50%;
-	height: 1.5em;
-	width:  1.5em;
-	margin-top: auto;
-	margin-bottom: auto;
-	margin-right: 0.5em;
+	color: red;
+}
+
+.minus {
+	height: 1rem;
+	width:  1rem;
+	margin-right: 0.5rem;
+	margin-left:  0.5rem;
 	background-color: #ffaaaa;
 	color: red;
-	font-size: 10px;	
+}
+
+.delete {
+	height: 1.5rem;
+	width:  1.5rem;
+	margin-right: 0.25rem;
+	margin-left:  0.25rem;
+	background-color: #ff0000;
+	color: white;
 }
 
 .hidden {
@@ -423,7 +560,7 @@ button {
 
 		<div class="meal_block" id="breakfast_block">
 			<div id="breakfast_list"></div>
-			<button class="plus" onclick="addRow('breakfast_list')">+</button>
+			<button class="plus unselectable" onclick="addRow('breakfast_list')">+</button>
 		</div>
 	</div>
 
@@ -442,7 +579,7 @@ button {
 
 		<div class="meal_block" id="snack1_block">
 			<div id="snack1_list"></div>
-			<button class="plus" onclick="addRow('snack1_list')">+</button>
+			<button class="plus unselectable" onclick="addRow('snack1_list')">+</button>
 		</div>
 	</div>
 	
@@ -461,7 +598,7 @@ button {
 
 		<div class="meal_block" id="lunch_block">
 			<div id="lunch_list"></div>
-			<button class="plus" onclick="addRow('lunch_list')">+</button>
+			<button class="plus unselectable" onclick="addRow('lunch_list')">+</button>
 		</div>
 	</div>
 	
@@ -480,7 +617,7 @@ button {
 
 		<div class="meal_block" id="snack2_block">
 			<div id="snack2_list"></div>
-			<button class="plus" onclick="addRow('snack2_list')">+</button>
+			<button class="plus unselectable" onclick="addRow('snack2_list')">+</button>
 		</div>
 	</div>
 	
@@ -499,13 +636,21 @@ button {
 
 		<div class="meal_block" id="dinner_block">
 			<div id="dinner_list"></div>
-			<button class="plus" onclick="addRow('dinner_list')">+</button>
+			<button class="plus unselectable" onclick="addRow('dinner_list')">+</button>
 		</div>
 	</div>
 	
 
 
 </div> <!-- container -->
+
+
+<div class="unselectable" id="footer"></div>
+
+
+
+
+
 
 </body>
 </html>
