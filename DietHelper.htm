@@ -42,7 +42,9 @@ function getValue(name) { return document.getElementById(name).textContent; }
 
 function setValue(name, value) { return document.getElementById(name).innerHTML = value; }	
 	
+function show(name) { document.getElementById(name).classList.remove("hidden"); }
 
+function hide(name) { document.getElementById(name).classList.add("hidden"); }
 
 
 // reads ingredients list, appends all ingredients as options to dropdown menu
@@ -332,12 +334,31 @@ body {
 	width:100%;
 	max-width:400px;
 	padding: 5px;
-	/*border: 1px solid black;*/
 	position: fixed;
 	bottom: 0px;
 	height: 3rem;
 	overflow: hidden;
 	background-color: #ccccff;
+}
+
+#menuInfo {
+	margin-left:  0.25rem;
+	margin-right: 0.25rem;
+	height:       1.5rem;
+	width:        1.5rem;
+	border: 1px solid black;
+	border-radius: 0.75rem;
+	background-color: #5050ff;
+	fill: white;
+	display: flex;
+}
+
+#iconInfo{
+	height: 1rem;
+	width:  1rem;
+	/*justify-content: center;
+	align-items: center;*/
+	margin: auto;
 }
 
 .meal_group {
@@ -432,7 +453,7 @@ select {
 
 #day_kcal {
 	margin-left: 0.25rem;
-	margin-right:2.25rem;
+	margin-right:0.25rem;
 }
 
 
@@ -499,7 +520,7 @@ button {
 }
 
 .hidden {
-	display: none;
+	display: none               !important;
 }
 
 .vertCenter {
@@ -530,6 +551,53 @@ button {
 	-ms-user-select: none;
 }
 
+
+#infoFrame {
+	display: flex;
+	position: fixed;
+	z-index: 1000;
+	top: 0px;
+	bottom: 0px;
+	left: 0px;
+	width: 100%;
+	max-width: 400px;
+	background-color: #000000b0;
+}
+
+#infobox {
+	display: block;
+	position: absolute;
+	top: 2rem;
+	bottom: 2rem;
+	left: 2rem;
+	right: 2rem;
+	background-color: #cccccc;
+	overflow-y: auto;
+	padding:5px;
+}
+
+#donate {
+	width:  3rem;
+	height: 3rem;
+	background-color: lightgreen;
+	border: 1px solid black;
+	border-radius: 1rem;
+}
+
+#hand {
+	fill: pink;
+	stroke: brown;
+	stroke-linejoin: round;
+	stroke-width: 2px;	
+}
+
+#coin {
+	fill: gold;
+	stroke: darkgoldenrod;
+	stroke-linejoin: round;
+	stroke-width: 1.5px;
+}
+
 </style>
 
 
@@ -544,6 +612,11 @@ button {
 	<div id="app_header">
 		<div class="unselectable" id="app_name">Diet Helper</div>
 		<div class="unselectable" id="day_kcal"></div>
+		<div id="menuInfo" onclick="show('infoFrame')">
+			<svg xmlns="http://www.w3.org/2000/svg" id="iconInfo" viewBox="0 0 1024 1024">
+				<path d="m640.8 12.64c40.68-5.326 85.35 9.973 106.5 47.33 28.91 51.11 12.97 122.6-40.87 156.7-41.97 26.63-98.75 28.74-137.6 0.9018-33.6-23.9-45.5-73.5-33.7-115.1 13.7-48 56.6-83.33 105.7-89.76zm23.7 330.9c22.1 55.7-5.4 119.8-25.3 174.7-35.6 97.2-104.8 279-116.7 315.4-13.7 41.6-0.4 59.4 26.3 48.8 45.6-18.5 96-98.6 131.2-124 14.4-10.4 30 13.6 23.1 29.6-27.9 64.8-138.5 161.5-225.5 199.2-48 20.8-111.2 35.8-157.3 14.8-38.9-17.5-45.9-60.9-40.4-97.4 16.3-107.1 64.7-205.3 102.8-305.6 22.03-58 64.68-156.2 68-173.3 6.1-31.3-16.2-39.1-41.1-25.7-50.4 27.2-98.4 106-125.6 123.2-15.3 9.7-31.3-7.1-28-20.8 8-33.6 84-106.4 112-129.6 74.4-61.6 140.7-75.3 187.3-79.51 41.41-3.781 92.42 7.921 109.2 50.21z"/>
+			</svg>
+		</div>
 	</div>
 
 <!-- BREAKFAST -->
@@ -648,6 +721,42 @@ button {
 <div class="unselectable" id="footer"></div>
 
 
+
+<div class="hidden" id="infoFrame">
+
+	<div class="unselectable" id="infoBox">
+		<p>
+		Questo programma serve a calcolare i valori nutrizionali consumati in un giorno e può funzionare sia come
+		consuntivo di ciò che si è consumato, sia come preventivo di ciò che si intende consumare.
+		</p>
+		<p>
+		L'utente deve selezionare per ogni pasto gli ingredienti (menu a tendina giallo) e inserire la quantità (celletta gialla). Il programma
+		ha un database di ingredienti con i valori nutrizionali <u>normalizzati su 100g</u>. La quantità è espressa in grammi. A fondo pagina,
+		quando disponibili, ci saranno informazioni aggiuntive (es.: "1 biscotto = 20g").
+		</p>
+		<p>
+		Per aggiornamenti potete visitare il mio blog, che contiene anche una lista di tutti i programmi che ho sviluppato ad oggi:<br/>
+		<a href="https://jacmoli.wordpress.com">jacmoli.wordpress.com</a>
+		</p>
+		<p>
+		Sviluppo programmi nel mio tempo libero, ma se avete piacere di sostenermi potete farmi una donazione su Paypal. Anche l'equivalente
+		di un caffè è un bel riconoscimento ;-)
+		</p>
+		
+		<p style="text-align:center;">
+			<a href="https://paypal.me/jacmoli">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="donate"  x="0px" y="0px" viewBox="-10 -5 60 60" style="enable-background:new -5 0 40.2 55;" xml:space="preserve">
+					<path id="hand" d="M21.2,16c-0.5,0.1-1,0.2-1.5,0.3c-1.4,0.2-2.8,0.3-4.2,0c-0.9-0.2-1.7-0.5-2.4-1.1c0,0,0,0,0,0  c-0.3,0.5-0.6,1-1,1.5c-0.8,1.1-1.7,2-2.9,2.7c-0.5,0.3-1,0.5-1.5,0.6c0,0,0,0-0.1,0c0.1,0.3,0.3,0.5,0.4,0.8  c0.3,0.8,0.5,1.7,0.7,2.6c0,0.2,0,0.4,0.1,0.6c0,0,0,0.1-0.1,0.1c-1.1,0.6-2,1.5-2.7,2.4c-0.8,1.1-1.5,2.2-1.9,3.5  c0,0.2-0.1,0.3-0.1,0.5c-0.2-0.4-0.3-0.7-0.5-1.1c-0.9-2.2-1.7-4.5-2.4-6.8c-0.3-1.2-0.6-2.3-1-3.5c-0.2-0.6-0.1-1.2,0.1-1.8  c0.4-1,0.9-2,1.4-2.9c1.2-2.1,2.6-4.2,4-6.1C5.9,8,6.2,7.7,6.4,7.4C6.8,7,7.2,6.7,7.7,6.5c1-0.4,2.1-0.8,3.1-1.2  c2.4-0.8,4.8-1.6,7.1-2.4c1.9-0.7,3.8-1.3,5.6-2.1c0.5-0.2,1-0.5,1.5-0.7c0.1,0,0.1,0,0.2,0c0.9,0,1.8,0.2,2.7,0.3  c1.9,0.4,3.8,0.9,5.6,1.7c1.7,0.7,3.3,1.5,4.7,2.7c0.8,0.6,1.4,1.3,1.9,2.2C40.1,7,40.1,7,40.2,7c-0.4,0.4-0.8,0.7-1.2,1.1  C38.2,9,37.6,10,37.2,11c-0.8,1.6-1.4,3.3-2,5.1c-0.5,1.5-1.1,3.1-1.7,4.6c-1,2.2-2.4,4.1-4.3,5.6c-1.6,1.3-3.5,2.3-5.4,3.1  c-1,0.4-2,0.8-3.1,1.2c-0.8,0.3-1.4,0.8-2,1.3c-1.1,0.9-2.1,1.8-3.2,2.7c-0.9,0.7-2,1.4-3.1,1.7C11,36.7,9.7,36.7,8.5,36  c-1.2-0.6-2-1.5-2.4-2.8c-0.3-1-0.2-2.1,0.2-3.1c0.5-1.2,1.3-2.2,2.2-3c1.3-1.2,2.8-2.2,4.4-3c0.8-0.4,1.7-0.8,2.5-1.2  c0.1,0,0.1-0.1,0.2-0.1c1.1-1.4,2.1-2.8,3.2-4.2c0.6-0.8,1.3-1.4,1.9-2.2C20.9,16.3,21.1,16.2,21.2,16z"/>
+					<path id="coin" d="M4.2,34C4.5,34.5,4.8,35,5,35.4c0.9,1.4,2.1,2.3,3.6,2.7c1.4,0.5,2.9,0.3,4.3-0.1c1.4-0.5,2.7-1.2,3.9-2.1  c0.7-0.5,1.3-1.1,1.9-1.6c0,0,0.1-0.1,0.1-0.1c0.5,0.5,0.9,1.1,1.2,1.7c0.8,1.5,1.1,3.1,1.1,4.8c-0.1,2.2-0.8,4.1-2.2,5.7  c-1.5,1.8-3.3,2.8-5.5,3.3C11.2,50.2,9,50,7,48.9c-2.5-1.3-4.1-3.4-4.8-6.2c-0.5-2.2-0.3-4.3,0.6-6.3c0.4-0.8,0.8-1.6,1.3-2.3  C4.1,34.1,4.2,34.1,4.2,34z"/>
+				</svg><br/>
+				<span class="smallFont">https://paypal.me/jacmoli</span>
+			</a>
+		</p>
+		
+	</div>
+
+
+</div>
 
 
 
