@@ -13,15 +13,35 @@ const ingredients = [
 		// ------- ORDER ----- EMPTY MUST ALWAYS BE FIRST, others in alphabetical order
 
 //  List_Name, List_Tooltip,
-//    kcal, fats, carb, prot, fibr
+//  	kcal, fats, carb, prot, fibr
 	["", "", 
 		0], 
-	["Cacao", "1 dose = 38g",
-		3.75],
+	["Bevanda mandorla bio Coop", "",
+		26,    1.2,   3.3,    0,   0],
+	["Bevanda riso coop", "",
+		61,    1.1,    13,    0,   0],
+	["Juice+ cioccolato", "1 dose = 38g",
+		371, 6.9, 41, 26.9, 18],
+	["Juice+ vaniglia", "1 dose = 38g",
+		375, 6.4, 46, 25.3, 15],		
+	["Coca cola", "",
+		42,      0,   10.6,   0,   0],
 	["Gall. riso Coop", "3 gallette = 25g",
-		377, 1.7, 81, 7.5, 3.9],
+		377,   1.7,     81, 7.5, 3.9],
 	["Latte", "",
 		48],
+	["Latte mandorla condorelli", "",
+		89, 3.9, 11.9, 1.5, 0],
+	["Mikado Lu", "",
+		485, 20, 70, 6.1, 1.8],
+	["Pistacchi tostati bio Carrefour", "",
+		631, 56, 81, 18, 11],
+	["Togo classic latte Pavesi", "",
+		509, 25, 62.7, 6.7, 3.2],
+	["Zymil 'buono' Parmalat", "",
+		41, 1, 4.9, 3.2, 0],
+		
+		
 	
 ];
 
@@ -177,7 +197,7 @@ function setIngredientProperties() {
 	let activeRow  = caller.parentNode;
 	let baseKcal   = activeRow.querySelector(".unit_kcal");
 	
-	baseKcal.textContent = ingredients[chosenIngr][2];
+	baseKcal.textContent = ingredients[chosenIngr][2] || 0;
 	
 	ingredients[chosenIngr][1] 
 		? setValue("footer", "<b>" + ingredients[chosenIngr][0] + ":</b> " + ingredients[chosenIngr][1])
