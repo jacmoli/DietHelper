@@ -9,60 +9,56 @@
 const globalDebug = 0;
 // --------------------
 
+var activeLanguage = "";
+
 const ingredients = [ 
 		// ------- ORDER ----- EMPTY MUST ALWAYS BE FIRST, others in alphabetical order
 
 //  List_Name, List_Tooltip,
-//  	kcal, fats, carb, prot, fibr
+//  	kcal, 	fats, 	carb, 	prot, 	fibr
 	["", "", 
-		0], 
+		0, 		0, 		0, 		0, 		0], 
+	["Albicocche essiccate reidratate Ventura", "",
+		254,	0.5,	55,		3.4,	7.3],
 	["Bevanda mandorla bio Coop", "",
-		26,    1.2,   3.3,    0,   0],
+		26,		1.2,	3.3,	0,		0],
 	["Bevanda riso coop", "",
-		61,    1.1,    13,    0,   0],
-	["Juice+ cioccolato", "1 dose = 38g",
-		371, 6.9, 41, 26.9, 18],
-	["Juice+ vaniglia", "1 dose = 38g",
-		375, 6.4, 46, 25.3, 15],		
+		61,		1.1,	13,		0,		0],	
 	["Coca cola", "",
-		42,      0,   10.6,   0,   0],
+		42,		0,		10.6,	0,		0],
 	["Gall. riso Coop", "3 gallette = 25g",
-		377,   1.7,     81, 7.5, 3.9],
+		377,	1.7,	81,		7.5,	3.9],
+	["Juice+ cioccolato", "1 dose = 38g",
+		371,	6.9,	41,		26.9,	18],
+	["Juice+ vaniglia", "1 dose = 38g",
+		375,	6.4,	46,		25.3,	15],
 	["Latte", "",
 		48],
-	["Latte mandorla condorelli", "",
-		89, 3.9, 11.9, 1.5, 0],
+	["Latte mandorla Condorelli", "",
+		89,		3.9,	11.9,	1.5,	0],
+	["M&amp;M's noccioline", "1 porzione = 33g",
+		511,	25.3,	59.2,	9.7,	0],
 	["Mikado Lu", "",
-		485, 20, 70, 6.1, 1.8],
+		485,	20,		70,		6.1,	1.8],
 	["Pansoti del Levante past. il Ponte", "1 porzione = 200g",
-		228, 4.2, 37.5, 7.7, 4.7],
+		228,	4.2,	37.5,	7.7,	4.7],
 	["Parmigiano Reggiano Ferrari", "",
-		402, 30, 0, 32, 0],
+		402,	30,		0,		32,		0],
 	["Pistacchi tostati bio Carrefour", "",
-		631, 56, 81, 18, 11],
+		631,	56,		81,		18,		11],
 	["Salsa di noci Past. il Ponte", "",
-		541, 54.3, 4.5, 11.3, 0],
+		541,	54.3,	4.5,	11.3,	0],
+	["Taglierini all'uovo Novella", "1 porzione = 200g",
+		271,	0.8,	56,		9.0,	0],
 	["Togo classic latte Pavesi", "",
-		509, 25, 62.7, 6.7, 3.2],
+		509,	25,		62.7,	6.7,	3.2],
 	["Zymil 'buono' Parmalat", "",
-		41, 1, 4.9, 3.2, 0],
+		41,		1,		4.9,	3.2,	0],
 		
 		
 	
 ];
 
-
-const menu = {};
-var i = 0;
-
-var kCalDay = {
-	breakfast: 0,
-	snackM:    0,
-	lunch:     0,
-	snack2:    0,
-	dinner:    0
-}
-	
 
 function getValue(name) { return document.getElementById(name).textContent; }
 
@@ -71,6 +67,16 @@ function setValue(name, value) { return document.getElementById(name).innerHTML 
 function show(name) { document.getElementById(name).classList.remove("hidden"); }
 
 function hide(name) { document.getElementById(name).classList.add("hidden"); }
+
+function setLang(newLanguage) {
+
+	if (newLanguage === activeLanguage) { return }
+		
+	document.querySelectorAll(".lang"    ).forEach(function(el){el.classList.add("hidden")});
+	document.querySelectorAll(newLanguage).forEach(function(el){el.classList.remove("hidden")});
+	activeLanguage = newLanguage;
+	return
+}
 
 
 // reads ingredients list, appends all ingredients as options to dropdown menu
@@ -87,7 +93,7 @@ function buildList(source) {
 	return select
 }
 
-function addRow(meal) {
+function addLine(meal) {
 
 	let parent = document.getElementById(meal);
 	
@@ -95,28 +101,28 @@ function addRow(meal) {
 		line.setAttribute("class", "ingredient");
 	
 	let select = buildList(ingredients);
-		select.setAttribute("class", "vertCenter");
+		select.setAttribute("class", "smallFont");
 		select.setAttribute("onchange", "setIngredientProperties()");
 	
 	let iMass = document.createElement("input");
-		iMass.setAttribute("class", "item_mass vertCenter unselectable");
+		iMass.setAttribute("class", "item_mass unselectable");
 		iMass.setAttribute("type", "tel");	
 		iMass.setAttribute("onkeyup", "userInput()");		
 		
 	let times = document.createElement("span");
-		times.setAttribute("class", "smallFont vertCenter unselectable");	
+		times.setAttribute("class", "smallFont unselectable");	
 		times.textContent = "x";
 	
 	let uKcal = document.createElement("div");
-		uKcal.setAttribute("class", "unit_kcal vertCenter unselectable smallfont");
+		uKcal.setAttribute("class", "unit_kcal unselectable smallFont");
 		uKcal.textContent = 0;
 		
 	let equal = document.createElement("span");
-		equal.setAttribute("class", "smallFont vertCenter unselectable");	
+		equal.setAttribute("class", "smallFont unselectable");	
 		equal.textContent = "=";
 	
 	let iKcal = document.createElement("div");
-		iKcal.setAttribute("class", "item_kcal vertCenter unselectable");	
+		iKcal.setAttribute("class", "item_kcal unselectable");	
 		iKcal.textContent = 0;	
 		
 	let enable = document.createElement("button");
@@ -317,11 +323,12 @@ function calculateDay() {
 
 window.onload = function(){
 
-	addRow("breakfast_list");
-	addRow("snack1_list");
-	addRow("lunch_list");
-	addRow("snack2_list");
-	addRow("dinner_list");
+	addLine("breakfast_list");
+	addLine("snack1_list");
+	addLine("lunch_list");
+	addLine("snack2_list");
+	addLine("dinner_list");
+	setLang(".it");
 };
 
 </script>
@@ -330,10 +337,19 @@ window.onload = function(){
 html {
 	font-size: 16px;
 }
+@media (min-width: 600px) { html {font-size: 24px;} }
+
 
 .smallFont {
-	font-size: 10px;
+	font-size: 0.75rem;
 }
+
+.fullWidth {
+	width:100%;
+	/*max-width: 25rem;	*/
+}
+@media (min-width: 800px) { .fullWidth {max-width: 35rem;} }
+
 
 body {
 	background-color: #666666;
@@ -344,10 +360,7 @@ body {
 
 #container {
 	box-sizing: border-box;
-	width:100%;
-	max-width:400px;
-	/*margin: 5px;*/
-	padding: 5px;
+	padding: 0.25rem;
 	border-bottom: 3px solid black;
 	position: fixed;
 	top: 0px;
@@ -357,9 +370,7 @@ body {
 
 #footer {
 	box-sizing: border-box;
-	width:100%;
-	max-width:400px;
-	padding: 5px;
+	padding: 0.25rem;
 	position: fixed;
 	bottom: 0px;
 	height: 3rem;
@@ -382,8 +393,6 @@ body {
 #iconInfo{
 	height: 1rem;
 	width:  1rem;
-	/*justify-content: center;
-	align-items: center;*/
 	margin: auto;
 }
 
@@ -454,7 +463,6 @@ select {
 	width: 4em;
 	margin-left: 0.5em;
 	margin-right: 0.5em;
-	font-size: 10px;
 }
 
 .item_mass, .unit_kcal, .item_kcal, .meal_kcal, #day_kcal {
@@ -585,21 +593,52 @@ button {
 	top: 0px;
 	bottom: 0px;
 	left: 0px;
-	width: 100%;
-	max-width: 400px;
 	background-color: #000000b0;
 }
 
-#infobox {
+#infoBox {
 	display: block;
 	position: absolute;
 	top: 2rem;
-	bottom: 2rem;
+	bottom: 6rem;
 	left: 2rem;
 	right: 2rem;
 	background-color: #cccccc;
 	overflow-y: auto;
 	padding:5px;
+}
+
+#languagebox {
+	display: flex;
+	height: 4 rem;
+	justify-content: space-evenly;
+	align-items: center;
+}
+
+.flags {
+	height: 3rem;
+	width: 3rem;
+	box-sizing: border-box;
+	border: 2px solid black;
+	border-radius: 1.5rem;
+}
+
+
+
+#backSign {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	bottom: 2rem;
+	left: 4rem;
+	right: 4rem;
+	margin: auto;
+	box-sizing: border-box;
+	height: 2rem;
+	border: 2px solid red;
+	border-radius: 1rem;
+	background-color: #ffcccc;
 }
 
 #donate {
@@ -633,7 +672,7 @@ button {
 <body>
 
 
-<div id="container">
+<div class="fullWidth" id="container">
 
 	<div id="app_header">
 		<div class="unselectable" id="app_name">Diet Helper</div>
@@ -652,14 +691,15 @@ button {
 				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="arrow up" x="0px" y="0px" viewBox="0 0 960 560" enable-background="new 0 0 960 560" xml:space="preserve">
 					<path d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937   c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937   c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/>
 				</svg>
-				Colazione
+				<span class="lang it">Colazione</span>
+				<span class="lang en">Breakfast</span>
 			</div>
 			<div class="meal_kcal unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="breakfast_block">
 			<div id="breakfast_list"></div>
-			<button class="plus unselectable" onclick="addRow('breakfast_list')">+</button>
+			<button class="plus unselectable smallFont" onclick="addLine('breakfast_list')">+</button>
 		</div>
 	</div>
 
@@ -671,14 +711,15 @@ button {
 				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="arrow up" x="0px" y="0px" viewBox="0 0 960 560" enable-background="new 0 0 960 560" xml:space="preserve">
 					<path d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937   c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937   c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/>
 				</svg>
-				Spuntino 1
+				<span class="lang it">Spuntino 1</span>
+				<span class="lang en">Snack 1</span>
 			</div>
 			<div class="meal_kcal unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="snack1_block">
 			<div id="snack1_list"></div>
-			<button class="plus unselectable" onclick="addRow('snack1_list')">+</button>
+			<button class="plus unselectable smallFont" onclick="addLine('snack1_list')">+</button>
 		</div>
 	</div>
 	
@@ -690,14 +731,15 @@ button {
 				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="arrow up" x="0px" y="0px" viewBox="0 0 960 560" enable-background="new 0 0 960 560" xml:space="preserve">
 					<path d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937   c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937   c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/>
 				</svg>
-				Pranzo
+				<span class="lang it">Pranzo</span>
+				<span class="lang en">Lunch</span>
 			</div>
 			<div class="meal_kcal unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="lunch_block">
 			<div id="lunch_list"></div>
-			<button class="plus unselectable" onclick="addRow('lunch_list')">+</button>
+			<button class="plus unselectable smallFont" onclick="addLine('lunch_list')">+</button>
 		</div>
 	</div>
 	
@@ -709,14 +751,15 @@ button {
 				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="arrow up" x="0px" y="0px" viewBox="0 0 960 560" enable-background="new 0 0 960 560" xml:space="preserve">
 					<path d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937   c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937   c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/>
 				</svg>
-				Spuntino 2
+				<span class="lang it">Spuntino 2</span>
+				<span class="lang en">Snack 2</span>
 			</div>
 			<div class="meal_kcal unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="snack2_block">
 			<div id="snack2_list"></div>
-			<button class="plus unselectable" onclick="addRow('snack2_list')">+</button>
+			<button class="plus unselectable smallFont" onclick="addLine('snack2_list')">+</button>
 		</div>
 	</div>
 	
@@ -728,14 +771,15 @@ button {
 				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="arrow up" x="0px" y="0px" viewBox="0 0 960 560" enable-background="new 0 0 960 560" xml:space="preserve">
 					<path d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937   c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937   c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/>
 				</svg>
-				Cena
+				<span class="lang it">Cena</span>
+				<span class="lang en">Dinner</span>
 			</div>
 			<div class="meal_kcal unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="dinner_block">
 			<div id="dinner_list"></div>
-			<button class="plus unselectable" onclick="addRow('dinner_list')">+</button>
+			<button class="plus unselectable smallFont" onclick="addLine('dinner_list')">+</button>
 		</div>
 	</div>
 	
@@ -744,29 +788,81 @@ button {
 </div> <!-- container -->
 
 
-<div class="unselectable" id="footer"></div>
+<div class="fullWidth unselectable" id="footer"></div>
 
 
 
-<div class="hidden" id="infoFrame">
+<div class="fullWidth hidden" id="infoFrame">
 
 	<div class="unselectable" id="infoBox">
+	
+		<div id="languageBox">
+			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="flags" id="flagIT" onclick="setLang('.it')" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+				<circle style="fill:#F0F0F0;" cx="256" cy="256" r="256"/>
+				<path style="fill:#D80027;" d="M512,256c0-110.071-69.472-203.906-166.957-240.077v480.155C442.528,459.906,512,366.071,512,256z"/>
+				<path style="fill:#6DA544;" d="M0,256c0,110.071,69.472,203.906,166.957,240.077V15.923C69.472,52.094,0,145.929,0,256z"/>
+			</svg>
+			
+			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="flags" id="flagEN" onclick="setLang('.en')" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+				<circle style="fill:#F0F0F0;" cx="256" cy="256" r="256"/>
+				<g>
+					<path style="fill:#0052B4;" d="M52.92,100.142c-20.109,26.163-35.272,56.318-44.101,89.077h133.178L52.92,100.142z"/>
+					<path style="fill:#0052B4;" d="M503.181,189.219c-8.829-32.758-23.993-62.913-44.101-89.076l-89.075,89.076H503.181z"/>
+					<path style="fill:#0052B4;" d="M8.819,322.784c8.83,32.758,23.993,62.913,44.101,89.075l89.074-89.075L8.819,322.784L8.819,322.784   z"/>
+					<path style="fill:#0052B4;" d="M411.858,52.921c-26.163-20.109-56.317-35.272-89.076-44.102v133.177L411.858,52.921z"/>
+					<path style="fill:#0052B4;" d="M100.142,459.079c26.163,20.109,56.318,35.272,89.076,44.102V370.005L100.142,459.079z"/>
+					<path style="fill:#0052B4;" d="M189.217,8.819c-32.758,8.83-62.913,23.993-89.075,44.101l89.075,89.075V8.819z"/>
+					<path style="fill:#0052B4;" d="M322.783,503.181c32.758-8.83,62.913-23.993,89.075-44.101l-89.075-89.075V503.181z"/>
+					<path style="fill:#0052B4;" d="M370.005,322.784l89.075,89.076c20.108-26.162,35.272-56.318,44.101-89.076H370.005z"/>
+				</g>
+				<g>
+					<path style="fill:#D80027;" d="M509.833,222.609h-220.44h-0.001V2.167C278.461,0.744,267.317,0,256,0   c-11.319,0-22.461,0.744-33.391,2.167v220.44v0.001H2.167C0.744,233.539,0,244.683,0,256c0,11.319,0.744,22.461,2.167,33.391   h220.44h0.001v220.442C233.539,511.256,244.681,512,256,512c11.317,0,22.461-0.743,33.391-2.167v-220.44v-0.001h220.442   C511.256,278.461,512,267.319,512,256C512,244.683,511.256,233.539,509.833,222.609z"/>
+					<path style="fill:#D80027;" d="M322.783,322.784L322.783,322.784L437.019,437.02c5.254-5.252,10.266-10.743,15.048-16.435   l-97.802-97.802h-31.482V322.784z"/>
+					<path style="fill:#D80027;" d="M189.217,322.784h-0.002L74.98,437.019c5.252,5.254,10.743,10.266,16.435,15.048l97.802-97.804   V322.784z"/>
+					<path style="fill:#D80027;" d="M189.217,189.219v-0.002L74.981,74.98c-5.254,5.252-10.266,10.743-15.048,16.435l97.803,97.803   H189.217z"/>
+					<path style="fill:#D80027;" d="M322.783,189.219L322.783,189.219L437.02,74.981c-5.252-5.254-10.743-10.266-16.435-15.047   l-97.802,97.803V189.219z"/>
+				</g>
+			</svg>
+			
+		</div>
+	
 		<p>
-		Questo programma serve a calcolare i valori nutrizionali consumati in un giorno e può funzionare sia come
-		consuntivo di ciò che si è consumato, sia come preventivo di ciò che si intende consumare.
+			<span class="lang it">
+				Questo programma serve a calcolare i valori nutrizionali consumati in un giorno e pu&ograve; funzionare sia come consuntivo di ci&ograve; che si &egrave; consumato, sia come preventivo di ci&ograve; che si intende consumare.
+			</span>
+			<span class="lang en">
+				This tool helps evaluate the nutritional values assumed during a single day and can serve both as a meal planner and as an end-day evaluator.
+			</span>
 		</p>
+		
 		<p>
-		L'utente deve selezionare per ogni pasto gli ingredienti (menu a tendina giallo) e inserire la quantità (celletta gialla). Il programma
-		ha un database di ingredienti con i valori nutrizionali <u>normalizzati su 100g</u>. La quantità è espressa in grammi. A fondo pagina,
-		quando disponibili, ci saranno informazioni aggiuntive (es.: "1 biscotto = 20g").
+			<span class="lang it">
+				L'utente deve selezionare per ogni pasto gli ingredienti (menu a tendina giallo) e inserire la quantit&agrave; (celletta gialla). Il programma ha un database di ingredienti con i valori nutrizionali <u>normalizzati su 100g / 100ml</u>. La quantit&agrave; &egrave; espressa in <b>grammi</b> o <b>ml</b>. A fondo pagina,	quando disponibili, ci saranno informazioni aggiuntive (es.: "1 biscotto = 20g").
+			</span>
+			<span class="lang en">
+				The user should select, for each meal, the list of ingredients (yellow dropdown menu) and relevant quantity (yellow cell). An internal database stores all available ingredients and their nutritional values, <u>shown on a "per 100g / per 100ml" basis</u>. Ingredients quantities are to be expressed in <b>grams</b> or <b>ml</b></span>.
+			</span>		
 		</p>
+		
 		<p>
-		Per aggiornamenti potete visitare il mio blog, che contiene anche una lista di tutti i programmi che ho sviluppato ad oggi:<br/>
-		<a href="https://jacmoli.wordpress.com">jacmoli.wordpress.com</a>
+			<span class="lang it">
+				Per aggiornamenti potete visitare il mio blog, che contiene anche una lista di tutti i programmi che ho sviluppato ad oggi:
+			</span>
+			<span class="lang en">
+				You can check for updates, and also for any other programs and tools I've been working on until now, on my blog:
+			</span>			
+			<br/>
+			<a href="https://jacmoli.wordpress.com">jacmoli.wordpress.com</a>
 		</p>
+		
 		<p>
-		Sviluppo programmi nel mio tempo libero, ma se avete piacere di sostenermi potete farmi una donazione su Paypal. Anche l'equivalente
-		di un caffè è un bel riconoscimento ;-)
+			<span class="lang it">
+				Sviluppo programmi nel mio tempo libero, ma se avete piacere di sostenermi potete farmi una donazione su Paypal. Anche l'equivalente di un caff&egrave; &egrave; un bel riconoscimento ;-)
+			</span>
+			<span class="lang en">
+				I code and develop this kind of tools in my spare time. If you want to help me, feel free to donate whatever you feel like on Paypal. Anything, even the equivalent of a coffee, will make myself proud and happy! ;-)
+			</span>			
+		
 		</p>
 		
 		<p style="text-align:center;">
@@ -779,8 +875,37 @@ button {
 			</a>
 		</p>
 		
+		
+		<p class="smallFont" style="text-align: center; margin-block-start: 2em; margin-block-end: 0.5em;"><b><i>
+			<span class="lang it">Disclaimer &amp; Note legali</span>
+			<span class="lang en">Disclaimer &amp; Legal</span>
+		</i></b></p>
+		<p class="smallFont" style="margin-block-start: 0.5em;">
+			<span class="lang it">
+				Il programma è fornito &quot;cos&igrave; com'&egrave;&quot; senza garanzie o responsabilità. Il codice &egrave; stato scritto in buona fede e lo stesso vale per il database ingredienti. Il programma &egrave; fornito a titolo gratuito FINIRE
+			</span>
+			<span class="lang en">
+				FINIRE 
+			</span>
+		</p>
+		
+		<p class="smallFont" style="text-align: center; margin-block-start: 2em; margin-block-end: 0.5em;"><b><i>Credits</i></b></p>
+		<p class="smallFont" style="margin-block-start: 0.5em;">
+			<span class="lang it">
+				Pur avendo sviluppato in autonomia questo programma ci sono almeno due persone che meritano di essere ringraziate: mia moglie Elisa, per avermi (involontariamente) suggerito l'idea di fondo e per avermi lasciato programmare alla sera dopo una giornata di lavoro fuori casa, e il mio amico Simone Poggi per le dritte informatiche. Anzi, se avete bisogno di un programmatore professionale andate sul suo sito: 
+			</span>
+			<span class="lang en">
+				Though I coded this tool on my own, I should thank at least two persons for letting this project become reality: my wife Elisa, for having given the initial input and for letting me code in the evenings even when I've been out for work all day, and my friend Simone Poggi, who gave me hints and revised some code sections. I'd suggest that if you need a professional programmer you'd better contact him on his website: 
+			</span>
+			<a href="http://simone-poggi.com/">http://simone-poggi.com/</a>
+		</p>
+		
 	</div>
+	
 
+	<div class="unselectable" id="backSign" onclick="hide('infoFrame')"><b>BACK</b></div>	
+
+	
 
 </div>
 
