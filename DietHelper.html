@@ -9,10 +9,25 @@
 const globalDebug = 0;
 // --------------------
 
-var activeLanguage = "";
+var activeLanguage = "";  	// .it , .en
+var activeValue = ""; 		// kcal, fats, carb, prot, fibr
+
+const listedValues = ["kcal", "fats", "carb", "prot", "fibr"];
+const listValNames = {
+				it: ["kCal", "Gras", "Carb", "Prot", "Fibr"],
+				en: ["kCal", "Fats", "Carb", "Prot", "Fibe"],
+}
+
+const RDA = {
+	kcal: 2000,
+	fats: 70,
+	carb: 260,
+	prot: 50,
+	fibr: 0,		// not regulated
+}
 
 const ingredients = [ 
-		// ------- ORDER ----- EMPTY MUST ALWAYS BE FIRST, others in alphabetical order
+// ------- ORDER ----- EMPTY MUST ALWAYS BE FIRST, others in alphabetical order
 
 //  List_Name, List_Tooltip,
 //  	kcal, 	fats, 	carb, 	prot, 	fibr
@@ -22,7 +37,7 @@ const ingredients = [
 		254,	0.5,	55,		3.4,	7.3],
 	["Bevanda mandorla bio Coop", "",
 		26,		1.2,	3.3,	0,		0],
-	["Bevanda riso coop", "",
+	["Bevanda riso Coop", "",
 		61,		1.1,	13,		0,		0],	
 	["Coca cola", "",
 		42,		0,		10.6,	0,		0],
@@ -36,6 +51,8 @@ const ingredients = [
 		48],
 	["Latte mandorla Condorelli", "",
 		89,		3.9,	11.9,	1.5,	0],
+	["Latte Zymil 'buono' Parmalat", "",
+		41,		1,		4.9,	3.2,	0],		
 	["M&amp;M's noccioline", "1 porzione = 33g",
 		511,	25.3,	59.2,	9.7,	0],
 	["Mikado Lu", "",
@@ -48,15 +65,14 @@ const ingredients = [
 		631,	56,		81,		18,		11],
 	["Salsa di noci Past. il Ponte", "",
 		541,	54.3,	4.5,	11.3,	0],
+	["Scamorza affumicata Coop", "",
+		290,	22,		1.0,	22,		0] // sale 1g
 	["Taglierini all'uovo Novella", "1 porzione = 200g",
 		271,	0.8,	56,		9.0,	0],
 	["Togo classic latte Pavesi", "",
 		509,	25,		62.7,	6.7,	3.2],
-	["Zymil 'buono' Parmalat", "",
-		41,		1,		4.9,	3.2,	0],
-		
-		
-	
+
+			
 ];
 
 
@@ -72,12 +88,57 @@ function setLang(newLanguage) {
 
 	if (newLanguage === activeLanguage) { return }
 		
-	document.querySelectorAll(".lang"    ).forEach(function(el){el.classList.add("hidden")});
-	document.querySelectorAll(newLanguage).forEach(function(el){el.classList.remove("hidden")});
+	document.querySelectorAll(".lang"          ).forEach(function(el){el.classList.add("hidden")});
+	document.querySelectorAll("." + newLanguage).forEach(function(el){el.classList.remove("hidden")});
 	activeLanguage = newLanguage;
 	return
 }
 
+function buildHeader() {
+
+	let cont = document.getElementById("summary_container");
+	let divs = [];
+	
+	let sVal  = 0;
+	let sTags = [];
+	
+	// el = kcal, carb ....
+	// i  = 0, 1 ....
+	listedValues.forEach( 
+		function(el, i) {
+			sVal  = 0;
+			sTags = [];
+					
+			divs[i] = document.createElement("div");
+			divs[i].setAttribute("class", "day_summary smallFont");
+			divs[i].setAttribute("id", "summ_" + el);
+			divs[i].setAttribute("onclick", "selectValue(document, '" + el + "')");
+		
+			cont.appendChild(divs[i]);
+			
+			sVal = document.createElement("span");
+			sVal.setAttribute("class", "summ_value unselectable");
+			sVal.setAttribute("id", "summ_value_" + el);
+			sVal.textContent = "0%";
+		
+			divs[i].appendChild(sVal);
+		
+			Object.keys(listValNames).forEach(
+				function(el, j){
+					
+					sTags[j] = document.createElement("span");
+					sTags[j].setAttribute("class", "unselectable lang " + el);
+					sTags[j].textContent = listValNames[el][i];
+					
+					divs[i].appendChild(sTags[j]);					
+				}
+			)
+		
+		}
+	)
+
+
+}
 
 // reads ingredients list, appends all ingredients as options to dropdown menu
 function buildList(source) {
@@ -94,6 +155,9 @@ function buildList(source) {
 }
 
 function addLine(meal) {
+
+	let uVals = []; 	// unitary values
+	let iVals = [];		// calculated ingredient values (on chosen qty)
 
 	let parent = document.getElementById(meal);
 	
@@ -113,18 +177,24 @@ function addLine(meal) {
 		times.setAttribute("class", "smallFont unselectable");	
 		times.textContent = "x";
 	
-	let uKcal = document.createElement("div");
-		uKcal.setAttribute("class", "unit_kcal unselectable smallFont");
-		uKcal.textContent = 0;
+//unitary and item values -------------------------------------	
+	
+	listedValues.forEach( function(el, i){
+		uVals[i] = document.createElement("div");
+		uVals[i].setAttribute("class", "unit_"+ el + " autoCell unselectable smallFont");
+		uVals[i].textContent = 0;	
+		
+		iVals[i] = document.createElement("div");
+		iVals[i].setAttribute("class", "item_"+ el + " autoCell unselectable");
+		iVals[i].textContent = 0;
+	});
+
+// end unitary values --------------------------------
 		
 	let equal = document.createElement("span");
 		equal.setAttribute("class", "smallFont unselectable");	
 		equal.textContent = "=";
 	
-	let iKcal = document.createElement("div");
-		iKcal.setAttribute("class", "item_kcal unselectable");	
-		iKcal.textContent = 0;	
-		
 	let enable = document.createElement("button");
 		enable.setAttribute("class", "minus smallFont unselectable");
 		enable.setAttribute("onclick", "enableDelete()");
@@ -140,12 +210,17 @@ function addLine(meal) {
 		line.appendChild(select);
 		line.appendChild(iMass);
 		line.appendChild(times);
-		line.appendChild(uKcal);
+		
+		for(ind in uVals) { line.appendChild(uVals[ind]) }
+		
 		line.appendChild(equal);
-		line.appendChild(iKcal);
+		
+		for(ind in iVals) { line.appendChild(iVals[ind]) }
+		
 		line.appendChild(enable);		
 		line.appendChild(remove);
-		
+	
+	selectValue(line, activeValue);
 }
 
 function enableDelete(){
@@ -185,8 +260,32 @@ function deleteRow() {
 	calculateMeal(meal);
 }
 
- 
+function selectValue(scope, value) {
 
+	if (value == activeValue && scope == document) { return };
+
+	scope.querySelectorAll(".autoCell")
+		.forEach(function(el){el.classList.add("hidden")});
+		
+	scope.querySelectorAll(".unit_" + value)
+		.forEach(function(el){el.classList.remove("hidden")});
+	scope.querySelectorAll(".item_" + value)
+		.forEach(function(el){el.classList.remove("hidden")});
+	scope.querySelectorAll(".meal_" + value)
+		.forEach(function(el){el.classList.remove("hidden")});
+		
+	activeValue = value;
+	
+	if (scope == document) {
+	
+		scope.querySelectorAll(".day_summary")
+			.forEach(function(el){el.classList.remove("active")});
+		
+		scope.getElementById("summ_" + value).classList.add("active");
+	}
+	
+	return
+}
 
 function toggleBlock() {
 
@@ -207,13 +306,24 @@ function setIngredientProperties() {
 
 	let chosenIngr = caller.value;
 	let activeRow  = caller.parentNode;
+	
 	let baseKcal   = activeRow.querySelector(".unit_kcal");
+	let baseFats   = activeRow.querySelector(".unit_fats");
+	let baseCarb   = activeRow.querySelector(".unit_carb");
+	let baseProt   = activeRow.querySelector(".unit_prot");
+	let baseFibr   = activeRow.querySelector(".unit_fibr");
+	
 	
 	baseKcal.textContent = ingredients[chosenIngr][2] || 0;
+	baseFats.textContent = ingredients[chosenIngr][3] || 0;
+	baseCarb.textContent = ingredients[chosenIngr][4] || 0;
+	baseProt.textContent = ingredients[chosenIngr][5] || 0;
+	baseFibr.textContent = ingredients[chosenIngr][6] || 0;
 	
 	ingredients[chosenIngr][1] 
 		? setValue("footer", "<b>" + ingredients[chosenIngr][0] + ":</b> " + ingredients[chosenIngr][1])
 		: setValue("footer", "");
+	
 	
 	calculateIngredient(caller);
 }
@@ -262,6 +372,14 @@ function calculateIngredient(eventCaller) {
 	let caller;
 	let meal; 
 	
+	let itemMass_id;
+	let mass;
+	
+	let uVals_id	= [];
+	let iVals_id	= [];
+	let uVals		= [];
+	let iVals		= [];
+	
 	console.log(eventCaller);
 	
 	eventCaller 
@@ -271,14 +389,18 @@ function calculateIngredient(eventCaller) {
 	console.log(caller);
 	meal = caller.parentNode.parentNode.parentNode.parentNode;
 		
-	let itemMass_id = caller.parentNode.querySelector(".item_mass");
-	let unitKcal_id = caller.parentNode.querySelector(".unit_kcal");
-	let itemKcal_id = caller.parentNode.querySelector(".item_kcal");
-	
+	itemMass_id = caller.parentNode.querySelector(".item_mass");
 	mass = itemMass_id.value;
-	kcal = unitKcal_id.textContent;
 	
-	itemKcal_id.textContent = Math.round(mass * kcal / 100); 
+	for(ind in listedValues) {
+	
+		uVals_id[ind] = caller.parentNode.querySelector(".unit_" + listedValues[ind]);
+		iVals_id[ind] = caller.parentNode.querySelector(".item_" + listedValues[ind]);
+		
+		uVals[ind] = uVals_id[ind].textContent;
+		
+		iVals_id[ind].textContent = Math.round(mass * uVals[ind] / 100);
+	}
 	
 	calculateMeal(meal);
 }
@@ -323,12 +445,14 @@ function calculateDay() {
 
 window.onload = function(){
 
+	buildHeader();
+	selectValue(document, "kcal");
 	addLine("breakfast_list");
 	addLine("snack1_list");
 	addLine("lunch_list");
 	addLine("snack2_list");
 	addLine("dinner_list");
-	setLang(".it");
+	setLang("it");
 };
 
 </script>
@@ -365,7 +489,7 @@ body {
 	position: fixed;
 	top: 0px;
 	bottom: 3rem;
-	overflow: overlay;
+	overflow-y: scroll;
 }
 
 #footer {
@@ -379,8 +503,8 @@ body {
 }
 
 #menuInfo {
-	margin-left:  0.25rem;
-	margin-right: 0.25rem;
+	/*margin-left:  0.25rem;*/
+	margin-right: 0.5rem;
 	height:       1.5rem;
 	width:        1.5rem;
 	border: 1px solid black;
@@ -401,7 +525,6 @@ body {
 
 .meal_header, #app_header {
 	font-weight: bold;
-	height: 2rem;
 	display:flex;
 	align-items: center;
 	border: 2px solid black;
@@ -413,13 +536,18 @@ body {
 
 .meal_header {
 	margin-right: 2rem;
+	height: 2rem;
 }
 
 #app_header {
+	height: 2.5rem;
+}
+
+#app_header, #app_name {
 	font-variant: small-caps;
 }
 
-.meal_name, #app_name {
+.meal_name {
 	display: inline-block;
 	margin-left: 1rem;
 	margin-right: 1rem;
@@ -428,9 +556,12 @@ body {
 }
 
 #app_name {
-	color: blue;
+	margin-left:  1rem;
+	margin-right: 1rem;
 	font-size: larger;
 	font-style: italic;
+	font-weight: bold;
+	color: #ffffaa;
 }
 
 
@@ -465,7 +596,7 @@ select {
 	margin-right: 0.5em;
 }
 
-.item_mass, .unit_kcal, .item_kcal, .meal_kcal, #day_kcal {
+.item_mass, .autoCell, #day_kcal {
 	box-sizing:border-box;
 	display: flex;
 	width: 3rem;
@@ -480,14 +611,50 @@ select {
 	overflow: hidden;
 }
 
-.item_mass, .unit_kcal, .item_kcal, .meal_kcal {
+.item_mass, .autoCell {
 	margin-left: 0.25rem;
 	margin-right:0.25rem;
 }
 
+.item_mass {
+	font-size: 1rem;
+}
+
 #day_kcal {
+	margin-left:  0.25rem; 
+	margin-right: 0.25rem; 
+	border-color: blue;
+	
+}
+
+.day_summary {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	width:3rem;
+	margin: auto 0.1rem;
+	box-sizing: border-box;
+	border-width: 1px;
+	border-color: gray;
+	border-style: solid;
+	border-radius: 0.5rem;
+}
+
+.day_summary.active {
+	border-width:3px;
+	border-color: black;
+}
+
+#summary_container {
+	width: 1px;
+	flex-grow: 1;
+	display: flex;
+	justify-content: space-evenly;
+	align-items: center;
 	margin-left: 0.25rem;
-	margin-right:0.25rem;
+	margin-right: 0.25rem;
 }
 
 
@@ -495,18 +662,13 @@ select {
 	background-color: #ffffaa;
 }
 
-.unit_kcal, .item_kcal, .meal_kcal, #day_kcal {
+.autoCell, #day_kcal {
 	background-color: #cccccc;
 }
 
-.item_mass, .unit_kcal, .item_kcal, .meal_kcal {
+.item_mass, .autoCell {
 	border-color: black;
 }
-
-#day_kcal {
-	border-color: blue;
-}
-
 
 button {
 	box-sizing: border-box; 
@@ -663,6 +825,8 @@ button {
 	stroke-width: 1.5px;
 }
 
+
+
 </style>
 
 
@@ -673,15 +837,19 @@ button {
 
 
 <div class="fullWidth" id="container">
-
+	<div class="unselectable" id="app_name">Diet Helper</div>
+	
 	<div id="app_header">
-		<div class="unselectable" id="app_name">Diet Helper</div>
+		<div id="summary_container"></div>
+		
 		<div class="unselectable" id="day_kcal"></div>
 		<div id="menuInfo" onclick="show('infoFrame')">
 			<svg xmlns="http://www.w3.org/2000/svg" id="iconInfo" viewBox="0 0 1024 1024">
 				<path d="m640.8 12.64c40.68-5.326 85.35 9.973 106.5 47.33 28.91 51.11 12.97 122.6-40.87 156.7-41.97 26.63-98.75 28.74-137.6 0.9018-33.6-23.9-45.5-73.5-33.7-115.1 13.7-48 56.6-83.33 105.7-89.76zm23.7 330.9c22.1 55.7-5.4 119.8-25.3 174.7-35.6 97.2-104.8 279-116.7 315.4-13.7 41.6-0.4 59.4 26.3 48.8 45.6-18.5 96-98.6 131.2-124 14.4-10.4 30 13.6 23.1 29.6-27.9 64.8-138.5 161.5-225.5 199.2-48 20.8-111.2 35.8-157.3 14.8-38.9-17.5-45.9-60.9-40.4-97.4 16.3-107.1 64.7-205.3 102.8-305.6 22.03-58 64.68-156.2 68-173.3 6.1-31.3-16.2-39.1-41.1-25.7-50.4 27.2-98.4 106-125.6 123.2-15.3 9.7-31.3-7.1-28-20.8 8-33.6 84-106.4 112-129.6 74.4-61.6 140.7-75.3 187.3-79.51 41.41-3.781 92.42 7.921 109.2 50.21z"/>
 			</svg>
 		</div>
+		
+
 	</div>
 
 <!-- BREAKFAST -->
@@ -694,7 +862,12 @@ button {
 				<span class="lang it">Colazione</span>
 				<span class="lang en">Breakfast</span>
 			</div>
-			<div class="meal_kcal unselectable">0</div>
+			
+			<div class="autoCell meal_kcal unselectable">0</div>
+			<div class="autoCell meal_fats unselectable">0</div>
+			<div class="autoCell meal_carb unselectable">0</div>
+			<div class="autoCell meal_prot unselectable">0</div>
+			<div class="autoCell meal_fibr unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="breakfast_block">
@@ -714,7 +887,11 @@ button {
 				<span class="lang it">Spuntino 1</span>
 				<span class="lang en">Snack 1</span>
 			</div>
-			<div class="meal_kcal unselectable">0</div>
+			<div class="autoCell meal_kcal unselectable">0</div>
+			<div class="autoCell meal_fats unselectable">0</div>
+			<div class="autoCell meal_carb unselectable">0</div>
+			<div class="autoCell meal_prot unselectable">0</div>
+			<div class="autoCell meal_fibr unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="snack1_block">
@@ -734,7 +911,11 @@ button {
 				<span class="lang it">Pranzo</span>
 				<span class="lang en">Lunch</span>
 			</div>
-			<div class="meal_kcal unselectable">0</div>
+			<div class="autoCell meal_kcal unselectable">0</div>
+			<div class="autoCell meal_fats unselectable">0</div>
+			<div class="autoCell meal_carb unselectable">0</div>
+			<div class="autoCell meal_prot unselectable">0</div>
+			<div class="autoCell meal_fibr unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="lunch_block">
@@ -754,7 +935,11 @@ button {
 				<span class="lang it">Spuntino 2</span>
 				<span class="lang en">Snack 2</span>
 			</div>
-			<div class="meal_kcal unselectable">0</div>
+			<div class="autoCell meal_kcal unselectable">0</div>
+			<div class="autoCell meal_fats unselectable">0</div>
+			<div class="autoCell meal_carb unselectable">0</div>
+			<div class="autoCell meal_prot unselectable">0</div>
+			<div class="autoCell meal_fibr unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="snack2_block">
@@ -774,7 +959,11 @@ button {
 				<span class="lang it">Cena</span>
 				<span class="lang en">Dinner</span>
 			</div>
-			<div class="meal_kcal unselectable">0</div>
+			<div class="autoCell meal_kcal unselectable">0</div>
+			<div class="autoCell meal_fats unselectable">0</div>
+			<div class="autoCell meal_carb unselectable">0</div>
+			<div class="autoCell meal_prot unselectable">0</div>
+			<div class="autoCell meal_fibr unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="dinner_block">
@@ -797,13 +986,13 @@ button {
 	<div class="unselectable" id="infoBox">
 	
 		<div id="languageBox">
-			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="flags" id="flagIT" onclick="setLang('.it')" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="flags" id="flagIT" onclick="setLang('it')" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
 				<circle style="fill:#F0F0F0;" cx="256" cy="256" r="256"/>
 				<path style="fill:#D80027;" d="M512,256c0-110.071-69.472-203.906-166.957-240.077v480.155C442.528,459.906,512,366.071,512,256z"/>
 				<path style="fill:#6DA544;" d="M0,256c0,110.071,69.472,203.906,166.957,240.077V15.923C69.472,52.094,0,145.929,0,256z"/>
 			</svg>
 			
-			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="flags" id="flagEN" onclick="setLang('.en')" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="flags" id="flagEN" onclick="setLang('en')" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
 				<circle style="fill:#F0F0F0;" cx="256" cy="256" r="256"/>
 				<g>
 					<path style="fill:#0052B4;" d="M52.92,100.142c-20.109,26.163-35.272,56.318-44.101,89.077h133.178L52.92,100.142z"/>
@@ -903,7 +1092,10 @@ button {
 	</div>
 	
 
-	<div class="unselectable" id="backSign" onclick="hide('infoFrame')"><b>BACK</b></div>	
+	<div class="unselectable" id="backSign" onclick="hide('infoFrame')"><b>
+		<span class="lang it">INDIETRO</span>
+		<span class="lang en">BACK</span>
+	</b></div>	
 
 	
 
