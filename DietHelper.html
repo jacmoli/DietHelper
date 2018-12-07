@@ -10,12 +10,12 @@ const globalDebug = 0;
 // --------------------
 
 var activeLanguage = "";  	// .it , .en
-var activeValue = ""; 		// kcal, fats, carb, prot, fibr
+var activeValue = ""; 		// one of listedValues[] 
 
-const listedValues = ["kcal", "fats", "carb", "prot", "fibr"];
+const listedValues = ["kcal", "fats", "carb", "prot", "fibr"]; //salt
 const listValNames = {
-				it: ["kCal", "Gras", "Carb", "Prot", "Fibr"],
-				en: ["kCal", "Fats", "Carb", "Prot", "Fibe"],
+				 it: ["kCal", "Gras", "Carb", "Prot", "Fibr"], //sale
+				 en: ["kCal", "Fats", "Carb", "Prot", "Fibe"], //salt
 }
 
 const RDA = {
@@ -24,15 +24,16 @@ const RDA = {
 	carb: 260,
 	prot: 50,
 	fibr: 0,		// not regulated
+	//salt: 6,
 }
 
 const ingredients = [ 
 // ------- ORDER ----- EMPTY MUST ALWAYS BE FIRST, others in alphabetical order
 
 //  List_Name, List_Tooltip,
-//  	kcal, 	fats, 	carb, 	prot, 	fibr
+//  	kcal, 	fats, 	carb, 	prot, 	fibr,	salt
 	["", "", 
-		0, 		0, 		0, 		0, 		0], 
+		0, 		0, 		0, 		0, 		0,		0], 
 	["Albicocche essiccate reidratate Ventura", "",
 		254,	0.5,	55,		3.4,	7.3],
 	["Bevanda mandorla bio Coop", "",
@@ -41,6 +42,14 @@ const ingredients = [
 		61,		1.1,	13,		0,		0],	
 	["Coca cola", "",
 		42,		0,		10.6,	0,		0],
+	["Crostino dorato buitoni", "2 fette = 11g",
+		417,	7.2,	74.2,	11.6,	4.7,	1],
+	["Crostino integrale buitoni", "2 fette = 11g",
+		416,	8.5,	69,		12.2,	7.4,	1.08],
+	["Dado classico Star", "(1/2 dado = 5g)",	
+		257,	20,		2.1,	17,		0.2,	58.8],
+	["Dado vegetale Knorr", "(1/2 dado = 5g)",	
+		165,	8.8,	19.8,	5,		5,		16.5],
 	["Gall. riso Coop", "3 gallette = 25g",
 		377,	1.7,	81,		7.5,	3.9],
 	["Juice+ cioccolato", "1 dose = 38g",
@@ -63,14 +72,20 @@ const ingredients = [
 		402,	30,		0,		32,		0],
 	["Pistacchi tostati bio Carrefour", "",
 		631,	56,		81,		18,		11],
+	["Polpo", "1 porziion3 = 300g",
+		57,		1,		1.4,	10.6,	0,		0.57],
 	["Salsa di noci Past. il Ponte", "",
 		541,	54.3,	4.5,	11.3,	0],
 	["Scamorza affumicata Coop", "",
-		290,	22,		1.0,	22,		0] // sale 1g
+		290,	22,		1.0,	22,		0,		1],
+	["Succo Derby blue Albicocca", "1 brick = 125ml",
+		62,		0,		14.6,	0.2,	0.6],
 	["Taglierini all'uovo Novella", "1 porzione = 200g",
 		271,	0.8,	56,		9.0,	0],
 	["Togo classic latte Pavesi", "",
 		509,	25,		62.7,	6.7,	3.2],
+	["Veg crock carote Noberasco", "1 pacchetto =  15g",
+		333,	1.7,	63,		4.8,	23,		0.65],
 
 			
 ];
@@ -94,27 +109,40 @@ function setLang(newLanguage) {
 	return
 }
 
-function buildHeader() {
+function buildHeaders() {
 
-	let cont = document.getElementById("summary_container");
+	let summary_cont = document.getElementById("summary_container");
+	let dayvals_cont = document.getElementById("dayvals_container");
 	let divs = [];
+	
 	
 	let sVal  = 0;
 	let sTags = [];
+	let dayVals  = [];
+	let mealVals = [];
+	
+	let mealHeaders = document.querySelectorAll(".meal_header");
+	
+	
+	// main app header ----------------------------------------------
 	
 	// el = kcal, carb ....
 	// i  = 0, 1 ....
 	listedValues.forEach( 
 		function(el, i) {
+		
+		// header SELECTORS -----------------------------------------
 			sVal  = 0;
 			sTags = [];
+			mealVals = [];
+			
 					
 			divs[i] = document.createElement("div");
 			divs[i].setAttribute("class", "day_summary smallFont");
 			divs[i].setAttribute("id", "summ_" + el);
 			divs[i].setAttribute("onclick", "selectValue(document, '" + el + "')");
 		
-			cont.appendChild(divs[i]);
+			summary_cont.appendChild(divs[i]);
 			
 			sVal = document.createElement("span");
 			sVal.setAttribute("class", "summ_value unselectable");
@@ -132,11 +160,62 @@ function buildHeader() {
 					
 					divs[i].appendChild(sTags[j]);					
 				}
+			);
+		// end header SELECTORS -------------------------------------
+
+		// header VALUES --------------------------------------------		
+		
+			dayVals[i] = document.createElement("div");
+			dayVals[i].setAttribute("class", "unselectable autoCell day_vals");
+			dayVals[i].setAttribute("id", "day_" + el);
+			
+			dayvals_cont.appendChild(dayVals[i]);
+			
+		// end header VALUES ----------------------------------------				
+		}
+	)
+	// end main app header ------------------------------------------
+	
+	
+	
+	// single meals headers -----------------------------------------
+	
+	mealHeaders.forEach(
+		function( node ) {
+			
+			mealVals = [];
+			
+			listedValues.forEach( 
+				function( val, i ) {
+					
+					mealVals[i] = document.createElement("div");
+					mealVals[i].setAttribute("class", "autoCell unselectable meal_" + val);
+					mealVals[i].textContent = 0;
+					
+					node.appendChild(mealVals[i]);
+					
+				}
 			)
+		
 		
 		}
 	)
 
+	// end single meals headers -------------------------------------
+
+}
+
+function findAncestorByClass(node, targetClass) {
+	if (node == document) {
+		alert("Error! Ancestor not found in findAncestorByClass");
+		return 0;
+	}
+	
+	if ( node.classList.contains(targetClass) ) {
+		return node;
+	} else {
+		return findAncestorByClass(node.parentNode, targetClass)
+	}
 
 }
 
@@ -253,7 +332,7 @@ function clearDelete(){
 function deleteRow() {
 	
 	let caller = event.currentTarget;
-	let meal   = caller.parentNode.parentNode.parentNode.parentNode;
+	let meal   = findAncestorByClass(caller, "meal_group"); 
 	let riga   = caller.parentNode;
 	riga.parentNode.removeChild(riga);
 	
@@ -281,7 +360,9 @@ function selectValue(scope, value) {
 		scope.querySelectorAll(".day_summary")
 			.forEach(function(el){el.classList.remove("active")});
 		
-		scope.getElementById("summ_" + value).classList.add("active");
+		scope.getElementById("summ_" + value).classList.add(   "active");
+		scope.getElementById("day_"  + value).classList.remove("hidden");
+		
 	}
 	
 	return
@@ -351,7 +432,7 @@ function userInput() {
 function setMass() {
 	
 	let caller = event.currentTarget;
-	let meal   = caller.parentNode.parentNode.parentNode.parentNode;
+	let meal   = findAncestorByClass(caller, "meal_group");
 	
 	let value;
 	let userInput = parseInt(prompt("Quantita':", ""), 10);
@@ -387,20 +468,21 @@ function calculateIngredient(eventCaller) {
 		: caller = event.currentTarget;
 
 	console.log(caller);
-	meal = caller.parentNode.parentNode.parentNode.parentNode;
+	meal = findAncestorByClass(caller, "meal_group");
 		
 	itemMass_id = caller.parentNode.querySelector(".item_mass");
 	mass = itemMass_id.value;
 	
-	for(ind in listedValues) {
-	
-		uVals_id[ind] = caller.parentNode.querySelector(".unit_" + listedValues[ind]);
-		iVals_id[ind] = caller.parentNode.querySelector(".item_" + listedValues[ind]);
+	listedValues.forEach(
+		function(el, i) {
+			uVals_id[i] = caller.parentNode.querySelector(".unit_" + el);
+			iVals_id[i] = caller.parentNode.querySelector(".item_" + el);
 		
-		uVals[ind] = uVals_id[ind].textContent;
+			uVals[i] = uVals_id[i].textContent;
 		
-		iVals_id[ind].textContent = Math.round(mass * uVals[ind] / 100);
-	}
+			iVals_id[i].textContent = Math.round(mass * uVals[i] / 100);
+		}
+	);
 	
 	calculateMeal(meal);
 }
@@ -409,43 +491,83 @@ function calculateIngredient(eventCaller) {
 function calculateMeal(meal){
 
 	let mealId;
-	let mealKcalList;
-	let mealKcalTot = 0;
+	let mealValuesList = [];
+	let mealValuesTot = [];
 	
 	meal 
 		? mealId = meal
-		: mealId = event.parentNode.parentNode.parentNode.parentNode;
+		: mealId = findAncestorByClass(caller, "meal_group");
+
+
+	listedValues.forEach(
+		function ( tag, i ) {
+
+			mealValuesList[i] = mealId.querySelectorAll(".item_" + tag)
+			mealValuesTot[i]  = 0;
+			
+			mealValuesList[i].forEach(
+				function(el){
+					mealValuesTot[i] += parseInt(el.textContent, 10);
+				}
+			);
+			
+			mealId.querySelector(".meal_" + tag).textContent = mealValuesTot[i];
+
 		
-	//console.log(mealId);
+		}
+	);
 	
-	mealKcalList = mealId.querySelectorAll(".item_kcal")
-	//console.log(mealKcalList);
 	
-	mealKcalList.forEach(function(el){
-		mealKcalTot += parseInt(el.textContent, 10);
-	});
-	
-	mealId.querySelector(".meal_kcal").textContent = mealKcalTot;
 	
 	calculateDay();
 }
 
 function calculateDay() {
-	let allMealsList  = document.querySelectorAll(".meal_kcal");
-	
-	let allMealsValue = 0;
+	let allMealsList  = [];
+	let allMealsValue = [];
 
-	allMealsList.forEach(function(el){
-		allMealsValue += parseInt(el.textContent, 10);
-	});	
 	
-	setValue("day_kcal", allMealsValue);	
+	listedValues.forEach(
+		function ( tag, i ) {
+		
+			allMealsList[i]  = document.querySelectorAll(".meal_" + tag);
+			
+			allMealsValue[i] = 0;
+			
+			allMealsList[i].forEach(
+				function(el){
+					allMealsValue[i] += parseInt(el.textContent, 10);
+				}
+			);	
+			
+			setValue("day_" + tag, allMealsValue[i]);
+			
+			
+			if ( RDA[tag] ) {
+			
+				setValue("summ_value_" + tag, parseInt( 100 * allMealsValue[i] / RDA[tag] , 10) + "%");
+			
+			} else {
+			
+				setValue("summ_value_" + tag, "----");
+			
+			}
+			
+			
+
+			
+			
+			
+			
+			
+		}
+	)
 }
 
 
 window.onload = function(){
 
-	buildHeader();
+	buildHeaders();
 	selectValue(document, "kcal");
 	addLine("breakfast_list");
 	addLine("snack1_list");
@@ -466,6 +588,10 @@ html {
 
 .smallFont {
 	font-size: 0.75rem;
+}
+
+.smallestFont {
+	font-size: 12px;
 }
 
 .fullWidth {
@@ -596,7 +722,7 @@ select {
 	margin-right: 0.5em;
 }
 
-.item_mass, .autoCell, #day_kcal {
+.item_mass, .autoCell {
 	box-sizing:border-box;
 	display: flex;
 	width: 3rem;
@@ -618,13 +744,6 @@ select {
 
 .item_mass {
 	font-size: 1rem;
-}
-
-#day_kcal {
-	margin-left:  0.25rem; 
-	margin-right: 0.25rem; 
-	border-color: blue;
-	
 }
 
 .day_summary {
@@ -657,12 +776,17 @@ select {
 	margin-right: 0.25rem;
 }
 
+#dayvals_container {
+	display: flex;
+	align-items: center;
+}
+
 
 .item_mass, select {
 	background-color: #ffffaa;
 }
 
-.autoCell, #day_kcal {
+.autoCell {
 	background-color: #cccccc;
 }
 
@@ -842,7 +966,16 @@ button {
 	<div id="app_header">
 		<div id="summary_container"></div>
 		
-		<div class="unselectable" id="day_kcal"></div>
+		<div id="dayvals_container"></div>
+		
+<!--		
+		<div class="unselectable day_vals" id="day_kcal"></div>
+		<div class="unselectable day_vals" id="day_fats"></div>
+		<div class="unselectable day_vals" id="day_carb"></div>
+		<div class="unselectable day_vals" id="day_prot"></div>
+		<div class="unselectable day_vals" id="day_fibr"></div>
+-->
+		
 		<div id="menuInfo" onclick="show('infoFrame')">
 			<svg xmlns="http://www.w3.org/2000/svg" id="iconInfo" viewBox="0 0 1024 1024">
 				<path d="m640.8 12.64c40.68-5.326 85.35 9.973 106.5 47.33 28.91 51.11 12.97 122.6-40.87 156.7-41.97 26.63-98.75 28.74-137.6 0.9018-33.6-23.9-45.5-73.5-33.7-115.1 13.7-48 56.6-83.33 105.7-89.76zm23.7 330.9c22.1 55.7-5.4 119.8-25.3 174.7-35.6 97.2-104.8 279-116.7 315.4-13.7 41.6-0.4 59.4 26.3 48.8 45.6-18.5 96-98.6 131.2-124 14.4-10.4 30 13.6 23.1 29.6-27.9 64.8-138.5 161.5-225.5 199.2-48 20.8-111.2 35.8-157.3 14.8-38.9-17.5-45.9-60.9-40.4-97.4 16.3-107.1 64.7-205.3 102.8-305.6 22.03-58 64.68-156.2 68-173.3 6.1-31.3-16.2-39.1-41.1-25.7-50.4 27.2-98.4 106-125.6 123.2-15.3 9.7-31.3-7.1-28-20.8 8-33.6 84-106.4 112-129.6 74.4-61.6 140.7-75.3 187.3-79.51 41.41-3.781 92.42 7.921 109.2 50.21z"/>
@@ -862,12 +995,6 @@ button {
 				<span class="lang it">Colazione</span>
 				<span class="lang en">Breakfast</span>
 			</div>
-			
-			<div class="autoCell meal_kcal unselectable">0</div>
-			<div class="autoCell meal_fats unselectable">0</div>
-			<div class="autoCell meal_carb unselectable">0</div>
-			<div class="autoCell meal_prot unselectable">0</div>
-			<div class="autoCell meal_fibr unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="breakfast_block">
@@ -887,11 +1014,6 @@ button {
 				<span class="lang it">Spuntino 1</span>
 				<span class="lang en">Snack 1</span>
 			</div>
-			<div class="autoCell meal_kcal unselectable">0</div>
-			<div class="autoCell meal_fats unselectable">0</div>
-			<div class="autoCell meal_carb unselectable">0</div>
-			<div class="autoCell meal_prot unselectable">0</div>
-			<div class="autoCell meal_fibr unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="snack1_block">
@@ -911,11 +1033,6 @@ button {
 				<span class="lang it">Pranzo</span>
 				<span class="lang en">Lunch</span>
 			</div>
-			<div class="autoCell meal_kcal unselectable">0</div>
-			<div class="autoCell meal_fats unselectable">0</div>
-			<div class="autoCell meal_carb unselectable">0</div>
-			<div class="autoCell meal_prot unselectable">0</div>
-			<div class="autoCell meal_fibr unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="lunch_block">
@@ -935,11 +1052,6 @@ button {
 				<span class="lang it">Spuntino 2</span>
 				<span class="lang en">Snack 2</span>
 			</div>
-			<div class="autoCell meal_kcal unselectable">0</div>
-			<div class="autoCell meal_fats unselectable">0</div>
-			<div class="autoCell meal_carb unselectable">0</div>
-			<div class="autoCell meal_prot unselectable">0</div>
-			<div class="autoCell meal_fibr unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="snack2_block">
@@ -959,11 +1071,6 @@ button {
 				<span class="lang it">Cena</span>
 				<span class="lang en">Dinner</span>
 			</div>
-			<div class="autoCell meal_kcal unselectable">0</div>
-			<div class="autoCell meal_fats unselectable">0</div>
-			<div class="autoCell meal_carb unselectable">0</div>
-			<div class="autoCell meal_prot unselectable">0</div>
-			<div class="autoCell meal_fibr unselectable">0</div>
 		</div>
 
 		<div class="meal_block" id="dinner_block">
@@ -1065,20 +1172,14 @@ button {
 		</p>
 		
 		
-		<p class="smallFont" style="text-align: center; margin-block-start: 2em; margin-block-end: 0.5em;"><b><i>
-			<span class="lang it">Disclaimer &amp; Note legali</span>
-			<span class="lang en">Disclaimer &amp; Legal</span>
-		</i></b></p>
-		<p class="smallFont" style="margin-block-start: 0.5em;">
-			<span class="lang it">
-				Il programma è fornito &quot;cos&igrave; com'&egrave;&quot; senza garanzie o responsabilità. Il codice &egrave; stato scritto in buona fede e lo stesso vale per il database ingredienti. Il programma &egrave; fornito a titolo gratuito FINIRE
-			</span>
-			<span class="lang en">
-				FINIRE 
-			</span>
-		</p>
+
 		
-		<p class="smallFont" style="text-align: center; margin-block-start: 2em; margin-block-end: 0.5em;"><b><i>Credits</i></b></p>
+		
+		<p class="smallFont" style="text-align: center; margin-block-start: 2em; margin-block-end: 0.5em;"><b><i>
+			<span class="lang it">Riconoscimenti</span>
+			<span class="lang en">Acknowledgements</span>
+		</i></b></p>
+		
 		<p class="smallFont" style="margin-block-start: 0.5em;">
 			<span class="lang it">
 				Pur avendo sviluppato in autonomia questo programma ci sono almeno due persone che meritano di essere ringraziate: mia moglie Elisa, per avermi (involontariamente) suggerito l'idea di fondo e per avermi lasciato programmare alla sera dopo una giornata di lavoro fuori casa, e il mio amico Simone Poggi per le dritte informatiche. Anzi, se avete bisogno di un programmatore professionale andate sul suo sito: 
@@ -1089,8 +1190,44 @@ button {
 			<a href="http://simone-poggi.com/">http://simone-poggi.com/</a>
 		</p>
 		
-	</div>
+
 	
+	
+		<p class="smallFont" style="text-align: center; margin-block-start: 2em; margin-block-end: 0.5em;"><b><i>
+			<span class="lang it">Disclaimer &amp; Note legali</span>
+			<span class="lang en">Disclaimer &amp; Legal</span>
+		</i></b></p>
+		
+		<p class="smallFont" style="margin-block-start: 0.5em;">
+			<b>Copyright 2018, Jacopo Molinari</b><br/><br/>
+			
+			<span class="lang it smallestFont">
+				Si concede gratuitamente l&apos;autorizzazione, a chiunque ottenga una copia di questo software e dei file di documentazione associati (il &quot;Software&quot;), di dare opera al Software senza restrizioni, compresi senza limitazione i diritti di utilizzare, copiare, modificare, unire, pubblicare, distribuire, concedere in sublicenza ovvero vendere copie del Software, e di consentire alle persone a cui il Software &egrave; fornito di fare altrettanto, posto che siano rispettate le seguenti condizioni:<br/><br/>
+
+				<b>L&apos;avviso di copyright unitamente a questo avviso di licenza devono essere sempre inclusi in tutte le copie o parti sostanziali del Software.</b><br/><br/>
+
+				IL SOFTWARE VIENE FORNITO "COS&Igrave; COM&apos;&Egrave;" SENZA GARANZIE DI ALCUN TIPO, ESPLICITE O IMPLICITE, COMPRESE, MA NON SOLO, LE GARANZIE DI COMMERCIABILIT&Agrave;, IDONEIT&Agrave; AD UN PARTICOLARE SCOPO E NON VIOLAZIONE DI DIRITTI ALTRUI. IN NESSUN CASO GLI AUTORI DEL SOFTWARE O I TITOLARI DEL COPYRIGHT POTRANNO ESSERE RITENUTI RESPONSABILI DI RECLAMI, DANNI O ALTRE RESPONSABILIT&Agrave;, DERIVANTI DA O COLLEGATI A CONTRATTO, ILLECITO CIVILE O IN ALTRA RELAZIONE CON IL SOFTWARE O CON IL SUO UTILIZZO O CON ALTRE OPERAZIONI DEL SOFTWARE.<br/><br/>
+				
+				<i>
+				Traduzione in italiano: CC-BY-SA steptr (https://github.com/steptr/MIT-License).<br/>
+				La traduzione non &egrave; ufficiale. In caso di dispute sar&agrave; applicata la versione in inglese.
+				</i>
+			</span>
+			<span class="lang en smallestFont">
+				Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:<br/><br/>
+
+				<b></b>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</b><br/><br/>
+
+				THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+			</span>
+		</p>
+	
+	
+	
+	
+	
+	
+	</div>		
 
 	<div class="unselectable" id="backSign" onclick="hide('infoFrame')"><b>
 		<span class="lang it">INDIETRO</span>
